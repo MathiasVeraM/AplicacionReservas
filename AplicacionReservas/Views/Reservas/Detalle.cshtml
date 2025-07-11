@@ -1,0 +1,120 @@
+﻿@model AplicacionReservas.Models.Reserva
+@{
+    ViewData["Title"] = "Detalle de Reserva";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Detalle de la Reserva</h2>
+
+<div class="card shadow">
+    <div class="card-body row g-4">
+
+        <!-- Información general -->
+        <div class="col-md-6">
+            <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
+            <p><strong>Materia:</strong> @Model.Materia</p>
+            <p><strong>Proyecto:</strong> @Model.NombreProyecto</p>
+            <p><strong>Actividad:</strong> @Model.Actividad</p>
+            <p><strong>Consideraciones Especiales:</strong> @Model.ConsideracionesEspeciales</p>
+        </div>
+
+        <div class="col-md-6">
+            <p><strong>Docente:</strong> @Model.Docente?.Nombre ?? "—"</p>
+            <p><strong>Laboratorio:</strong> @Model.Laboratorio?.Nombre ?? "—"</p>
+            <p><strong>Módulo:</strong> @Model.ModuloHorario?.Nombre ?? "—"</p>
+            <p><strong>Tipo de reserva:</strong> @Model.TipoReserva</p>
+            <p><strong>Duración:</strong> @Model.DuracionHoras horas</p>
+        </div>
+
+        <!-- Miembros del equipo -->
+        <div class="col-12">
+            <h5>Miembros del equipo</h5>
+            @if (Model.MiembrosEquipo != null && Model.MiembrosEquipo.Any())
+            {
+                <ul>
+                    @foreach (var miem in Model.MiembrosEquipo)
+                    {
+                        <li>@miem.Nombre</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>—</p>
+            }
+        </div>
+
+        <!-- Equipos -->
+        <div class="col-12">
+            <h5>Equipos utilizados</h5>
+            @if (Model.Equipos != null && Model.Equipos.Any())
+            {
+                <ul>
+                    @foreach (var eq in Model.Equipos)
+                    {
+                        <li>@eq.Nombre</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>—</p>
+            }
+        </div>
+
+        <!-- Reactivos -->
+        <div class="col-12">
+            <h5>Reactivos</h5>
+            @if (Model.ReservaReactivos != null && Model.ReservaReactivos.Any())
+            {
+                <ul>
+                    @foreach (var rr in Model.ReservaReactivos)
+                    {
+                        <li>@rr.Reactivo?.Nombre - @rr.Cantidad @rr.Unidad</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>—</p>
+            }
+        </div>
+
+        <!-- Insumos -->
+        <div class="col-12">
+            <h5>Insumos</h5>
+            @if (Model.Insumos != null && Model.Insumos.Any())
+            {
+                <ul>
+                    @foreach (var ins in Model.Insumos)
+                    {
+                        <li>@ins.Nombre: @ins.Cantidad</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>—</p>
+            }
+        </div>
+
+        <!-- Evidencia -->
+        <div class="col-12">
+            <h5>Evidencia del correo aprobado</h5>
+            @if (!string.IsNullOrEmpty(Model.EvidenciaCorreoRuta))
+            {
+                <img src="@Model.EvidenciaCorreoRuta" alt="Evidencia" class="img-fluid img-thumbnail" style="max-width: 300px;" />
+            }
+            else
+            {
+                <p>No disponible</p>
+            }
+        </div>
+
+        <!-- Botones -->
+        <div class="col-12 d-flex gap-3 mt-4">
+            <a asp-action="Listado" class="btn btn-dark">Volver</a>
+            <a asp-action="DescargarPDF" asp-route-id="@Model.Id" class="btn btn-secondary">Descargar PDF</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,164 @@
+﻿@model IEnumerable<AplicacionReservas.Models.Reserva>
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+
+@{
+    ViewData["Title"] = "Listado de Reservas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool esAdmin = User.IsInRole("Admin");
+    string userId = User.FindFirst("UserId")?.Value;
+}
+
+<h1>Listado de Reservas</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Módulo</th>
+            <th>Laboratorio</th>
+            <th>Estudiantes</th>
+            <th>Equipos</th>
+            <th>Reactivos</th>
+            <th>Estado</th>
+            @if (esAdmin || Model.Any(r => !r.EsMantenimiento))
+            {
+                <th>Detalle</th>
+            }
+            @if (esAdmin)
+            {
+                <th>Acciones</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.Fecha.ToShortDateString()</td>
+                <td>@(r.ModuloHorario?.Nombre ?? "—")</td>
+                <td>@(r.Laboratorio?.Nombre ?? "—")</td>
+                <td>
+                    <ul class="mb-0">
+                        @if (r.MiembrosEquipo != null && r.MiembrosEquipo.Any())
+                        {
+                            foreach (var miem in r.MiembrosEquipo)
+                            {
+                                <li>@miem.Nombre</li>
+                            }
+                        }
+                        else
+                        {
+                            <li>-</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    <ul class="mb-0">
+                        @if (r.Equipos != null && r.Equipos.Any())
+                        {
+                            foreach (var eq in r.Equipos)
+                            {
+                                <li>@eq.Nombre</li>
+                            }
+                        }
+                        else
+                        {
+                            <li>-</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    <ul class="mb-0">
+                        @if (r.ReservaReactivos != null && r.ReservaReactivos.Any())
+                        {
+                            foreach (var rr in r.ReservaReactivos)
+                            {
+                                <li>@(rr.Reactivo?.Nombre ?? "—") - @rr.Cantidad</li>
+                            }
+                        }
+                        else
+                        {
+                            <li>-</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    @if (r.EsMantenimiento)
+                    {
+                        <span class="badge bg-info text-dark">Mantenimiento</span>
+                    }
+                    else if (r.Aprobado)
+                    {
+                        <span class="badge bg-success">Aprobado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    }
+                </td>
+                @if (!r.EsMantenimiento)
+                {
+                    @if (esAdmin)
+                    {
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-info">Ver Detalles</a>
+                        </td>
+                        <td>
+                            <form asp-action="Aprobar" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
+                            </form>
+                            <br />
+                            <form asp-action="Rechazar" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
+                            </form>
+                        </td>
+                    }
+                    else
+                    {
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-dark btn-sm">Ver Detalles</a>
+                        </td>
+                    }
+                }
+                else
+                {
+                    <td></td>
+                    <!-- Administrador solo puede eliminar un mantenimiento -->
+                    @if (esAdmin) 
+                    {
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar_@r.Id">
+                                Eliminar
+                            </button>
+                            <div class="modal fade" id="modalEliminar_@r.Id" tabindex="-1" aria-labelledby="modalLabelEliminar_@r.Id" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="modalLabelEliminar_@r.Id">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            ¿Estás seguro de que deseas eliminar esta reserva?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form asp-action="Eliminar" asp-controller="Reservas" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.Id" />
+                                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+

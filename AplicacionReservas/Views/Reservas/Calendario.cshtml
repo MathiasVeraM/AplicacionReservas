@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Calendario de Reservas";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
+
+<div class="container my-4">
+    <h2>Calendario de Reservas</h2>
+    <div id="calendar" style="background-color: white; padding: 20px; border-radius: 10px;"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek',
+            locale: 'es',
+            height: 'auto',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'timeGridWeek,timeGridDay'
+            },
+            slotMinTime: "07:00:00",
+            slotMaxTime: "20:00:00",
+            allDaySlot: false,
+            eventColor: '#1a234c',
+            events: '/Reservas/ObtenerReservas',
+
+            eventDidMount: function (info) {
+                // Tooltip de Bootstrap
+                const tooltip = new bootstrap.Tooltip(info.el, {
+                    title: `Laboratorio: ${info.event.extendedProps.laboratorio}
+                            Usuario: ${info.event.extendedProps.email}
+                            Inicio: ${new Date(info.event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            Fin: ${new Date(info.event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                    placement: 'top',
+                    trigger: 'hover',
+                    html: false
+                });
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+
