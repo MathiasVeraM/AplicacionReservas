@@ -40,8 +40,19 @@
                     <select asp-for="LaboratorioId" asp-items="@(new SelectList(ViewBag.Laboratorios, "Id", "Nombre"))" class="form-select" required></select>
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label">Duración (en horas)</label>
+                    <select id="duracionReserva" name="DuracionHoras" class="form-select" required>
+                        <option value="">Seleccione duración</option>
+                        <option value="1">1 hora</option>
+                        <option value="2">2 horas</option>
+                        <option value="3">3 horas</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
                     <label class="form-label">Módulo horario</label>
-                    <select asp-for="ModuloHorarioId" asp-items="@(new SelectList(ViewBag.Modulos, "Id", "Nombre"))" class="form-select" required></select>
+                    <select id="moduloHorario" name="ModuloHorarioId" class="form-select" required>
+                        <option value="">Seleccione módulo horario</option>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Docente</label>
@@ -62,14 +73,6 @@
                 <div class="col-md-6">
                     <label class="form-label">Evidencia del correo aprobado</label>
                     <input asp-for="EvidenciaCorreoRuta" type="file" accept="image/*" class="form-control" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Duración (en horas)</label>
-                    <select class="form-select" name="DuracionReserva">
-                        <option value="1">1 hora</option>
-                        <option value="2">2 horas</option>
-                        <option value="3">3 horas</option>
-                    </select>
                 </div>
             </div>
         </div>
@@ -215,6 +218,7 @@
 
 @section Scripts {
     <script>
+        const todosLosModulos = @Html.Raw(Json.Serialize(ViewBag.Modulos));
         // Variables para contar miembros e insumos
         let contadorMiembros = 1;
         let contadorInsumos = 1;
@@ -281,6 +285,25 @@
             if (cantidadInput) cantidadInput.style.display = mostrar ? 'inline-block' : 'none';
             if (unidadSelect) unidadSelect.style.display = mostrar ? 'inline-block' : 'none';
         }
+
+        // Mostrar los horarios correspondientes
+        document.getElementById("duracionReserva").addEventListener("change", function () {
+            const duracionSeleccionada = parseInt(this.value);
+            const moduloSelect = document.getElementById("moduloHorario");
+
+            // Limpiar opciones actuales
+            moduloSelect.innerHTML = '<option value="">Seleccione módulo horario</option>';
+
+            // Filtrar y agregar los módulos compatibles
+            const modulosFiltrados = todosLosModulos.filter(m => m.duracionHoras === duracionSeleccionada);
+
+            modulosFiltrados.forEach(m => {
+                const option = document.createElement("option");
+                option.value = m.id;
+                option.textContent = m.nombre;
+                moduloSelect.appendChild(option);
+            });
+        });
 
         // Control de pasos
         const steps = document.querySelectorAll(".form-step");

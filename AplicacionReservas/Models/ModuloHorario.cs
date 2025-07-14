@@ -15,7 +15,9 @@ namespace AplicacionReservas.Models
 
         [Required]
         public TimeSpan HoraFin { get; set; }
-
+        [Required]
+        [Range(1, 3)]
+        public int DuracionHoras { get; set; } // 1, 2 o 3
         public ICollection<Reserva> Reservas { get; set; }
     }
 }

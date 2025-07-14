@@ -42,8 +42,18 @@
                     <select asp-for="LaboratorioId" asp-items="@(new SelectList(ViewBag.Laboratorios, "Id", "Nombre", Model.LaboratorioId))" class="form-select" required></select>
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label">Duración (en horas)</label>
+                    <select asp-for="DuracionHoras" class="form-select" id="duracionReserva" required>
+                        <option value="1">1 hora</option>
+                        <option value="2">2 horas</option>
+                        <option value="3">3 horas</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
                     <label class="form-label">Módulo horario</label>
-                    <select asp-for="ModuloHorarioId" asp-items="@(new SelectList(ViewBag.Modulos, "Id", "Nombre", Model.ModuloHorarioId))" class="form-select" required></select>
+                    <select id="moduloHorario" name="ModuloHorarioId" class="form-select" required>
+                        <option value="">Seleccione módulo horario</option>
+                    </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Docente</label>
@@ -69,14 +79,7 @@
                         <small class="text-muted">Archivo actual: <a href="@Model.EvidenciaCorreoRuta" target="_blank">Ver evidencia</a></small>
                     }
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Duración (en horas)</label>
-                    <select class="form-select" name="DuracionReserva">
-                        <option value="1">1 hora</option>
-                        <option value="2">2 horas</option>
-                        <option value="3">3 horas</option>
-                    </select>
-                </div>
+                
             </div>
         </div>
         <div class="d-flex justify-content-end">
@@ -240,6 +243,8 @@
 
 @section Scripts {
     <script>
+        const todosLosModulos = @Html.Raw(Json.Serialize(ViewBag.Modulos));
+
         // Variables para contar miembros e insumos
         let contadorMiembros = 1;
         let contadorInsumos = 1;
@@ -295,6 +300,32 @@
             const item = btn.closest('.insumo-item');
             item.remove();
         }
+
+        function cargarModulosPorDuracion(duracion, moduloSeleccionado) {
+            const moduloSelect = document.getElementById("moduloHorario");
+            moduloSelect.innerHTML = '<option value="">Seleccione módulo horario</option>';
+            const modulosFiltrados = todosLosModulos.filter(m => m.duracionHoras === duracion);
+            modulosFiltrados.forEach(m => {
+                const option = document.createElement("option");
+                option.value = m.id;
+                option.textContent = m.nombre;
+                if (m.id === moduloSeleccionado) {
+                    option.selected = true;
+                }
+                moduloSelect.appendChild(option);
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const duracionActual = parseInt(document.getElementById("duracionReserva").value);
+            const moduloActual = @Model.ModuloHorarioId;
+            cargarModulosPorDuracion(duracionActual, moduloActual);
+        });
+
+        document.getElementById("duracionReserva").addEventListener("change", function () {
+            const duracionSeleccionada = parseInt(this.value);
+            cargarModulosPorDuracion(duracionSeleccionada, null);
+        });
 
         // Mostrar/ocultar cantidad y unidad en reactivos
         function toggleCantidad(checkbox) {

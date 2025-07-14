@@ -24,7 +24,7 @@ namespace AplicacionReservas.Controllers
         public IActionResult Crear()
         {
             ViewBag.Laboratorios = _context.Laboratorios.ToList();
-            ViewBag.Modulos = _context.ModulosHorario.ToList();
+            ViewBag.Modulos = _context.ModulosHorario.Select(m => new {m.Id, m.Nombre, m.DuracionHoras}).ToList();
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
@@ -44,17 +44,47 @@ namespace AplicacionReservas.Controllers
             Dictionary<int, int> cantidades,
             Dictionary<int, string> unidades)
         {
-            var reservasExistentes = _context.Reservas.Count(r =>
-                r.Fecha == reserva.Fecha &&
-                r.LaboratorioId == reserva.LaboratorioId &&
-                r.ModuloHorarioId == reserva.ModuloHorarioId);
+            // Obtener módulo horario actual
+            var moduloActual = await _context.ModulosHorario
+                .Where(m => m.Id == reserva.ModuloHorarioId)
+                .Select(m => new { m.HoraInicio, m.HoraFin, m.DuracionHoras })
+                .FirstOrDefaultAsync();
 
-            if (reservasExistentes >= 3)
+            if (moduloActual == null)
             {
-                ModelState.AddModelError("", "Ya existen 3 reservas para ese laboratorio, módulo y fecha.");
+                ModelState.AddModelError("ModuloHorarioId", "El módulo horario seleccionado no existe.");
+                CargarListasParaViewBag();
                 return View(reserva);
             }
 
+            // Validar si la duración elegida coincide con la del módulo
+            if (reserva.DuracionHoras != moduloActual.DuracionHoras)
+            {
+                ModelState.AddModelError("DuracionHoras", "La duración seleccionada no coincide con la del módulo horario.");
+                CargarListasParaViewBag();
+                return View(reserva);
+            }
+
+            // Validar traslape de reservas
+            var reservasTraslapadas = await _context.Reservas
+                .Include(r => r.ModuloHorario)
+                .Where(r =>
+                    r.Fecha == reserva.Fecha &&
+                    r.LaboratorioId == reserva.LaboratorioId &&
+                    r.ModuloHorario != null &&
+                    r.ModuloHorario.HoraInicio < moduloActual.HoraFin &&
+                    r.ModuloHorario.HoraFin > moduloActual.HoraInicio
+                )
+                .CountAsync();
+
+            if (reservasTraslapadas >= 3)
+            {
+                ModelState.AddModelError("", "Ya existen 3 reservas traslapadas para ese laboratorio y horario.");
+                CargarListasParaViewBag();
+                return View(reserva);
+            }
+
+            // Guardar evidencia
             if (EvidenciaCorreoRuta != null && EvidenciaCorreoRuta.Length > 0)
             {
                 var nombreArchivo = Path.GetFileName(EvidenciaCorreoRuta.FileName);
@@ -72,41 +102,22 @@ namespace AplicacionReservas.Controllers
             else
             {
                 ModelState.AddModelError("EvidenciaCorreoRuta", "Debe subir una imagen como evidencia.");
+                CargarListasParaViewBag();
                 return View(reserva);
             }
 
-            reserva.MiembrosEquipo = miembros;
-            reserva.Insumos = insumos;
-
-            reserva.Equipos = _context.Equipos
-                .Where(e => equipoIds.Contains(e.Id))
-                .ToList();
-
-            reserva.ReservaReactivos = new List<ReservaReactivo>();
-            foreach (var reactivoId in reactivosSeleccionados)
-            {
-                if (cantidades.TryGetValue(reactivoId, out int cantidad) && cantidad > 0 &&
-                    unidades.TryGetValue(reactivoId, out string unidad) && !string.IsNullOrWhiteSpace(unidad))
-                {
-                    reserva.ReservaReactivos.Add(new ReservaReactivo
-                    {
-                        ReactivoId = reactivoId,
-                        Cantidad = cantidad,
-                        Unidad = unidad
-                    });
-                }
-            }
-
+            // Asignar usuario
             var userIdClaim = User.FindFirst("UserId")?.Value;
-
             if (!int.TryParse(userIdClaim, out int userId))
             {
                 ModelState.AddModelError("", "No se pudo identificar al usuario.");
+                CargarListasParaViewBag();
                 return View(reserva);
             }
 
             reserva.UsuarioId = userId;
 
+            // Validaciones generales
             if (!reserva.EsMantenimiento)
             {
                 if (string.IsNullOrWhiteSpace(reserva.Materia) ||
@@ -117,34 +128,66 @@ namespace AplicacionReservas.Controllers
                     string.IsNullOrWhiteSpace(reserva.EvidenciaCorreoRuta))
                 {
                     ModelState.AddModelError("", "Todos los campos del formulario son obligatorios.");
+                    CargarListasParaViewBag();
                     return View(reserva);
                 }
             }
 
+            // Validar traslape con mantenimiento
             var hayMantenimiento = await _context.Reservas.AnyAsync(r =>
                 r.EsMantenimiento &&
                 r.Fecha == reserva.Fecha &&
                 r.LaboratorioId == reserva.LaboratorioId &&
-                reserva.ModuloHorarioId != null &&
-                r.HoraInicioMantenimiento < _context.ModulosHorario
-                    .Where(m => m.Id == reserva.ModuloHorarioId)
-                    .Select(m => m.HoraFin)
-                    .FirstOrDefault() &&
-                r.HoraFinMantenimiento > _context.ModulosHorario
-                    .Where(m => m.Id == reserva.ModuloHorarioId)
-                    .Select(m => m.HoraInicio)
-                    .FirstOrDefault());
+                r.HoraInicioMantenimiento < moduloActual.HoraFin &&
+                r.HoraFinMantenimiento > moduloActual.HoraInicio);
 
             if (hayMantenimiento)
             {
                 ModelState.AddModelError("", "Ya hay un mantenimiento programado para ese horario.");
+                CargarListasParaViewBag();
                 return View(reserva);
+            }
+
+            // Cargar relaciones
+            reserva.MiembrosEquipo = miembros;
+            reserva.Insumos = insumos;
+
+            reserva.Equipos = _context.Equipos
+                .Where(e => equipoIds.Contains(e.Id))
+                .ToList();
+
+            reserva.ReservaReactivos = new List<ReservaReactivo>();
+            foreach (var reactivoId in reactivosSeleccionados)
+            {
+                if (cantidades.TryGetValue(reactivoId, out int cantidad) &&
+                    unidades.TryGetValue(reactivoId, out string unidad) &&
+                    !string.IsNullOrWhiteSpace(unidad) && cantidad > 0)
+                {
+                    reserva.ReservaReactivos.Add(new ReservaReactivo
+                    {
+                        ReactivoId = reactivoId,
+                        Cantidad = cantidad,
+                        Unidad = unidad
+                    });
+                }
             }
 
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Calendario");
+            return RedirectToAction("Listado");
+        }
+
+
+        // Metodo auxiliar
+        private void CargarListasParaViewBag()
+        {
+            ViewBag.Laboratorios = _context.Laboratorios.ToList();
+            ViewBag.Modulos = _context.ModulosHorario.Select(m => new { m.Id, m.Nombre, m.DuracionHoras }).ToList();
+            ViewBag.Reactivos = _context.Reactivos.ToList();
+            ViewBag.Equipos = _context.Equipos.ToList();
+            ViewBag.Docentes = _context.Docentes.ToList();
+            ViewBag.Unidades = _context.Unidades.ToList();
         }
 
         // Ver las reservas realizadas
@@ -297,7 +340,7 @@ namespace AplicacionReservas.Controllers
             }
 
             ViewBag.Laboratorios = _context.Laboratorios.ToList();
-            ViewBag.Modulos = _context.ModulosHorario.ToList();
+            ViewBag.Modulos = _context.ModulosHorario.Select(m => new { m.Id, m.Nombre, m.DuracionHoras }).ToList();
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
@@ -340,6 +383,39 @@ namespace AplicacionReservas.Controllers
                 return Forbid();
             }
 
+            // Validar traslape de horarios antes de guardar
+            var moduloActual = await _context.ModulosHorario
+                .Where(m => m.Id == reservaActualizada.ModuloHorarioId)
+                .Select(m => new { m.HoraInicio, m.HoraFin })
+                .FirstOrDefaultAsync();
+
+            if (moduloActual == null)
+            {
+                ModelState.AddModelError("ModuloHorarioId", "El módulo horario seleccionado no existe.");
+                CargarListasParaViewBag();
+                return View(reservaActualizada);
+            }
+
+            var reservasTraslapadas = await _context.Reservas
+                .Include(r => r.ModuloHorario)
+                .Where(r =>
+                    r.Id != id &&
+                    r.Fecha == reservaActualizada.Fecha &&
+                    r.LaboratorioId == reservaActualizada.LaboratorioId &&
+                    r.ModuloHorario != null &&
+                    r.ModuloHorario.HoraInicio < moduloActual.HoraFin &&
+                    r.ModuloHorario.HoraFin > moduloActual.HoraInicio
+                )
+                .CountAsync();
+
+            if (reservasTraslapadas >= 3)
+            {
+                ModelState.AddModelError("", "Ya existen 3 reservas traslapadas para ese laboratorio y horario.");
+                CargarListasParaViewBag();
+                return View(reservaActualizada);
+            }
+
+            // Procesar evidencia (si se actualiza)
             if (EvidenciaCorreoRuta != null && EvidenciaCorreoRuta.Length > 0)
             {
                 var nombreArchivo = Path.GetFileName(EvidenciaCorreoRuta.FileName);
@@ -355,6 +431,7 @@ namespace AplicacionReservas.Controllers
                 reserva.EvidenciaCorreoRuta = "/evidencia/" + nombreArchivo;
             }
 
+            // Actualizar campos base
             reserva.Fecha = reservaActualizada.Fecha;
             reserva.Materia = reservaActualizada.Materia;
             reserva.NombreProyecto = reservaActualizada.NombreProyecto;
@@ -365,13 +442,18 @@ namespace AplicacionReservas.Controllers
             reserva.DocenteId = reservaActualizada.DocenteId;
             reserva.DuracionHoras = reservaActualizada.DuracionHoras;
 
+            // Actualizar miembros
             reserva.MiembrosEquipo = miembros;
+
+            // Actualizar insumos
             reserva.Insumos = insumos;
 
+            // Actualizar equipos
             reserva.Equipos = _context.Equipos
                 .Where(e => equipoIds.Contains(e.Id))
                 .ToList();
 
+            // Actualizar reactivos
             reserva.ReservaReactivos = new List<ReservaReactivo>();
             foreach (var reactivoId in reactivosSeleccionados)
             {
