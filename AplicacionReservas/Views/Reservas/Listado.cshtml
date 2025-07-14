@@ -87,13 +87,20 @@
                     {
                         <span class="badge bg-info text-dark">Mantenimiento</span>
                     }
-                    else if (r.Aprobado)
-                    {
-                        <span class="badge bg-success">Aprobado</span>
-                    }
                     else
                     {
-                        <span class="badge bg-warning text-dark">Pendiente</span>
+                        switch (r.Aprobado)
+                        {
+                            case EstadoAprobacion.Aprobado:
+                                <span class="badge bg-success">Aprobado</span>
+                                break;
+                            case EstadoAprobacion.NoAprobado:
+                                <span class="badge bg-danger">Rechazado</span>
+                                break;
+                            case EstadoAprobacion.Revision:
+                                <span class="badge bg-warning text-dark">Pendiente Revision</span>
+                                break;
+                        }
                     }
                 </td>
                 @if (!r.EsMantenimiento)
@@ -106,12 +113,17 @@
                         <td>
                             <form asp-action="Aprobar" method="post" class="d-inline">
                                 <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-success btn-sm">Aprobar</button>
+                                <button type="submit" class="btn btn-success btn-sm mt-1">Aprobar</button>
                             </form>
                             <br />
                             <form asp-action="Rechazar" method="post" class="d-inline">
                                 <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
+                                <button type="submit" class="btn btn-danger btn-sm mt-1">Rechazar</button>
+                            </form>
+                            <br />
+                            <form asp-action="EnRevision" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@r.Id" />
+                                <button type="submit" class="btn btn-warning btn-sm mt-1">En Revisión</button>
                             </form>
                         </td>
                     }
@@ -119,6 +131,10 @@
                     {
                         <td>
                             <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-dark btn-sm">Ver Detalles</a>
+                            @if (r.Aprobado == EstadoAprobacion.Revision && r.UsuarioId.ToString() == userId)
+                            {
+                                <a asp-action="Editar" asp-route-id="@r.Id" class="btn btn-dark btn-sm mt-1">Editar</a>
+                            }
                         </td>
                     }
                 }

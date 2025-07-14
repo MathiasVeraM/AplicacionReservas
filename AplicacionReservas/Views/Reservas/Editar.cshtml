@@ -1,0 +1,389 @@
+﻿@model AplicacionReservas.Models.Reserva
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Editar Reserva";
+    var miembros = Model.MiembrosEquipo?.ToList() ?? new List<AplicacionReservas.Models.MiembroEquipo>();
+    var insumos = Model.Insumos?.ToList() ?? new List<AplicacionReservas.Models.Insumo>();
+}
+
+<h2 class="mb-4">Editar Reserva</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+<form asp-action="Editar" method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="formReserva">
+    <input type="hidden" asp-for="Id" />
+
+    <!-- Barra de progreso -->
+    <div class="progress mb-4" style="height: 25px;">
+        <div id="barraProgreso" class="progress-bar bg-black text-white fw-bold" role="progressbar" style="width: 16.6%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="6">
+            Paso 1 de 6
+        </div>
+    </div>
+
+    <!-- Paso 1: Información general -->
+    <div class="form-step">
+        <div class="card mb-4">
+            <div class="card-header">Información general</div>
+            <div class="card-body row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha</label>
+                    <input asp-for="Fecha" type="date" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Laboratorio</label>
+                    <select asp-for="LaboratorioId" asp-items="@(new SelectList(ViewBag.Laboratorios, "Id", "Nombre", Model.LaboratorioId))" class="form-select" required></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Módulo horario</label>
+                    <select asp-for="ModuloHorarioId" asp-items="@(new SelectList(ViewBag.Modulos, "Id", "Nombre", Model.ModuloHorarioId))" class="form-select" required></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Docente</label>
+                    <select asp-for="DocenteId" asp-items="@(new SelectList(ViewBag.Docentes, "Id", "Nombre", Model.DocenteId))" class="form-select" required></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Materia</label>
+                    <input asp-for="Materia" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nombre del proyecto</label>
+                    <input asp-for="NombreProyecto" class="form-control" required />
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Actividad</label>
+                    <input asp-for="Actividad" class="form-control" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Evidencia del correo aprobado</label>
+                    <input asp-for="EvidenciaCorreoRuta" type="file" accept="image/*" class="form-control" />
+                    @if (!string.IsNullOrEmpty(Model.EvidenciaCorreoRuta))
+                    {
+                        <small class="text-muted">Archivo actual: <a href="@Model.EvidenciaCorreoRuta" target="_blank">Ver evidencia</a></small>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Duración (en horas)</label>
+                    <select class="form-select" name="DuracionReserva">
+                        <option value="1">1 hora</option>
+                        <option value="2">2 horas</option>
+                        <option value="3">3 horas</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-dark" id="nextBtn1">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 2: Miembros del equipo -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Miembros del equipo</div>
+            <div class="card-body" id="equipo-container">
+                @for (int i = 0; i < miembros.Count; i++)
+                {
+                    <div class="row g-3 mb-3 miembro-item">
+                        <div class="col-md-4">
+                            <input name="miembros[@i].Nombre" value="@miembros[i].Nombre" class="form-control" placeholder="Nombre del miembro" required />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarMiembro(this)">X</button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-sm btn-outline-dark" onclick="agregarMiembro()">Agregar miembro</button>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn2">Anterior</button>
+            <button type="button" class="btn btn-dark" id="nextBtn2">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 3: Insumos -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Insumos</div>
+            <div class="card-body" id="insumo-container">
+                @for (int i = 0; i < insumos.Count; i++)
+                {
+                    <div class="row g-3 mb-3 insumo-item">
+                        <div class="col-md-6">
+                            <input name="insumos[@i].Nombre" value="@insumos[i].Nombre" class="form-control" placeholder="Nombre del insumo" required />
+                        </div>
+                        <div class="col-md-4">
+                            <input name="insumos[@i].Cantidad" type="number" value="@insumos[i].Cantidad" class="form-control" min="1" required />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarInsumo(this)">X</button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-sm btn-outline-dark" onclick="agregarInsumo()">Agregar insumo</button>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn3">Anterior</button>
+            <button type="button" class="btn btn-dark" id="nextBtn3">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 4: Equipos -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Equipos por laboratorio</div>
+            <div class="card-body">
+                @{
+                    var equiposPorLab = ((List<AplicacionReservas.Models.Equipo>)ViewBag.Equipos)
+                        .GroupBy(e => e.NombreLaboratorio)
+                        .OrderBy(g => g.Key);
+
+                    var idsSeleccionados = Model.Equipos.Select(e => e.Id).ToList();
+                }
+
+                @foreach (var grupo in equiposPorLab)
+                {
+                    <fieldset class="mb-3 border rounded p-3">
+                        <legend class="float-none w-auto px-2 fw-bold">@grupo.Key</legend>
+                        <div class="row">
+                            @foreach (var equipo in grupo)
+                            {
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id"
+                                               @(idsSeleccionados.Contains(equipo.Id) ? "checked" : "") />
+                                        <label class="form-check-label" for="equipo-@equipo.Id">@equipo.Nombre</label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </fieldset>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn4">Anterior</button>
+            <button type="button" class="btn btn-dark" id="nextBtn4">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 5: Reactivos -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Reactivos</div>
+            <div class="card-body row g-3">
+                @{
+                    var reactivosUsados = Model.ReservaReactivos.ToDictionary(r => r.ReactivoId);
+                }
+
+                @foreach (var reactivo in ViewBag.Reactivos)
+                {
+                    var usado = reactivosUsados.ContainsKey(reactivo.Id);
+                    var cantidad = usado ? reactivosUsados[reactivo.Id].Cantidad : 0;
+                    var unidad = usado ? reactivosUsados[reactivo.Id].Unidad : "";
+                <div class="col-md-12 d-flex align-items-center mb-2">
+                    <div class="form-check me-3">
+                        <input class="form-check-input" type="checkbox" name="reactivosSeleccionados" value="@reactivo.Id"
+                               id="reactivo-@reactivo.Id" onchange="toggleCantidad(this)" @(usado ? "checked" : "") />
+                        <label class="form-check-label" for="reactivo-@reactivo.Id">@reactivo.Nombre</label>
+                    </div>
+
+                    <input type="number" name="cantidades[@reactivo.Id]" value="@(cantidad)" class="form-control me-2 w-25" min="1" style="display:@(usado ? "inline-block" : "none");" />
+
+                    <select name="unidades[@reactivo.Id]" class="form-select w-25" style="display:@(usado ? "inline-block" : "none");">
+                        <option value="">Selecciona unidad</option>
+                        @foreach (var u in ViewBag.Unidades)
+                        {
+                            <option value="@u.Nombre"
+                                >
+                                @u.Nombre
+                            </option>
+                        }
+                    </select>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn5">Anterior</button>
+            <button type="button" class="btn btn-dark" id="nextBtn5">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 6: Consideraciones Especiales -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Consideraciones Especiales</div>
+            <div class="col-md-12">
+                <textarea asp-for="ConsideracionesEspeciales" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn6">Anterior</button>
+            <button type="submit" class="btn btn-dark text-white">Guardar Cambios</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Variables para contar miembros e insumos
+        let contadorMiembros = 1;
+        let contadorInsumos = 1;
+
+        // Funciones de agregar y eliminar miembros e insumos (igual que las tienes)
+        function agregarMiembro() {
+            const cont = document.getElementById("equipo-container");
+            const miembrosActuales = cont.querySelectorAll('.miembro-item').length;
+
+            if (miembrosActuales >= 4) {
+                alert("Solo puedes agregar hasta 4 miembros en el equipo.");
+                return;
+            }
+
+            const div = document.createElement("div");
+            div.className = "row g-3 mb-3 miembro-item";
+            div.innerHTML = `
+                        <div class="col-md-4">
+                            <input name="miembros[${contadorMiembros}].Nombre" class="form-control" placeholder="Nombre del miembro" required />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarMiembro(this)">X</button>
+                        </div>`;
+            cont.appendChild(div);
+            contadorMiembros++;
+        }
+
+        function eliminarMiembro(btn) {
+            const cont = document.getElementById("equipo-container");
+            const item = btn.closest('.miembro-item');
+            cont.removeChild(item);
+        }
+
+        function agregarInsumo() {
+            const cont = document.getElementById("insumo-container");
+            const div = document.createElement("div");
+            div.className = "row g-3 mb-3 insumo-item";
+            div.innerHTML = `
+                        <div class="col-md-6">
+                            <input name="insumos[${contadorInsumos}].Nombre" class="form-control" placeholder="Nombre del insumo" required />
+                        </div>
+                        <div class="col-md-4">
+                            <input name="insumos[${contadorInsumos}].Cantidad" class="form-control" type="number" min="1" placeholder="Cantidad" required />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarInsumo(this)">X</button>
+                        </div>`;
+            cont.appendChild(div);
+            contadorInsumos++;
+        }
+
+        function eliminarInsumo(btn) {
+            const item = btn.closest('.insumo-item');
+            item.remove();
+        }
+
+        // Mostrar/ocultar cantidad y unidad en reactivos
+        function toggleCantidad(checkbox) {
+            const container = checkbox.closest('.d-flex');
+            const cantidadInput = container.querySelector('input[type="number"]');
+            const unidadSelect = container.querySelector('select');
+            const mostrar = checkbox.checked;
+
+            if (cantidadInput) cantidadInput.style.display = mostrar ? 'inline-block' : 'none';
+            if (unidadSelect) unidadSelect.style.display = mostrar ? 'inline-block' : 'none';
+        }
+
+        // Control de pasos
+        const steps = document.querySelectorAll(".form-step");
+        let currentStep = 0;
+
+        function showStep(index) {
+            steps.forEach((step, i) => {
+                step.style.display = (i === index) ? "block" : "none";
+            });
+        }
+
+        showStep(currentStep);
+
+        document.getElementById("nextBtn1").addEventListener("click", () => {
+            currentStep = 1;
+            showStep(currentStep);
+        });
+
+        document.getElementById("prevBtn2").addEventListener("click", () => {
+            currentStep = 0;
+            showStep(currentStep);
+        });
+        document.getElementById("nextBtn2").addEventListener("click", () => {
+            currentStep = 2;
+            showStep(currentStep);
+        });
+
+        document.getElementById("prevBtn3").addEventListener("click", () => {
+            currentStep = 1;
+            showStep(currentStep);
+        });
+        document.getElementById("nextBtn3").addEventListener("click", () => {
+            currentStep = 3;
+            showStep(currentStep);
+        });
+
+        document.getElementById("prevBtn4").addEventListener("click", () => {
+            currentStep = 2;
+            showStep(currentStep);
+        });
+        document.getElementById("nextBtn4").addEventListener("click", () => {
+            currentStep = 4;
+            showStep(currentStep);
+        });
+
+        document.getElementById("prevBtn5").addEventListener("click", () => {
+            currentStep = 3;
+            showStep(currentStep);
+        });
+
+        document.getElementById("nextBtn5").addEventListener("click", () => {
+            currentStep = 5;
+            showStep(currentStep);
+        });
+
+        document.getElementById("prevBtn6").addEventListener("click", () => {
+            currentStep = 4;
+            showStep(currentStep);
+        });
+
+
+        function showStep(index) {
+            steps.forEach((step, i) => {
+                step.style.display = (i === index) ? "block" : "none";
+            });
+
+            // Actualizar barra de progreso
+            const progreso = document.getElementById("barraProgreso");
+            const total = steps.length;
+            const pasoActual = index + 1;
+            const porcentaje = (pasoActual / total) * 100;
+
+            progreso.style.width = `${porcentaje}%`;
+            progreso.setAttribute("aria-valuenow", pasoActual);
+            progreso.textContent = `Paso ${pasoActual} de ${total}`;
+
+            // Scroll al inicio del formulario
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    </script>
+}

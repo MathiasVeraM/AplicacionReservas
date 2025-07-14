@@ -180,8 +180,8 @@ namespace AplicacionReservas.Migrations
                     b.Property<string>("Actividad")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Aprobado")
-                        .HasColumnType("bit");
+                    b.Property<int>("Aprobado")
+                        .HasColumnType("int");
 
                     b.Property<string>("ConsideracionesEspeciales")
                         .HasColumnType("nvarchar(max)");
@@ -220,9 +220,6 @@ namespace AplicacionReservas.Migrations
 
                     b.Property<string>("NombreProyecto")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TipoReserva")
-                        .HasColumnType("int");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");

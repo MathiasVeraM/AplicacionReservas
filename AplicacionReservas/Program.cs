@@ -1,8 +1,11 @@
 using AplicacionReservas.Data;
+using DinkToPdf.Contracts;
+using DinkToPdf;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using AplicacionReservas.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +32,12 @@ builder.Services.AddControllersWithViews(options =>
                     .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
 });
+
+var context = new CustomAssemblyLoadContext();
+var path = Path.Combine(Directory.GetCurrentDirectory(), "LibreriaPDF", "libwkhtmltox.dll");
+context.LoadUnmanagedLibrary(path);
+
+builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
 
 var app = builder.Build();
 

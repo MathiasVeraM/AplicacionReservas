@@ -8,7 +8,7 @@
 
 <div class="card shadow">
     <div class="card-body row g-4">
-
+        <h6>Información general</h6>
         <!-- Información general -->
         <div class="col-md-6">
             <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
@@ -22,13 +22,12 @@
             <p><strong>Docente:</strong> @Model.Docente?.Nombre ?? "—"</p>
             <p><strong>Laboratorio:</strong> @Model.Laboratorio?.Nombre ?? "—"</p>
             <p><strong>Módulo:</strong> @Model.ModuloHorario?.Nombre ?? "—"</p>
-            <p><strong>Tipo de reserva:</strong> @Model.TipoReserva</p>
             <p><strong>Duración:</strong> @Model.DuracionHoras horas</p>
         </div>
 
         <!-- Miembros del equipo -->
         <div class="col-12">
-            <h5>Miembros del equipo</h5>
+            <h6>Miembros del equipo</h6>
             @if (Model.MiembrosEquipo != null && Model.MiembrosEquipo.Any())
             {
                 <ul>
@@ -46,7 +45,7 @@
 
         <!-- Equipos -->
         <div class="col-12">
-            <h5>Equipos utilizados</h5>
+            <h6>Equipos utilizados</h6>
             @if (Model.Equipos != null && Model.Equipos.Any())
             {
                 <ul>
@@ -64,7 +63,7 @@
 
         <!-- Reactivos -->
         <div class="col-12">
-            <h5>Reactivos</h5>
+            <h6>Reactivos</h6>
             @if (Model.ReservaReactivos != null && Model.ReservaReactivos.Any())
             {
                 <ul>
@@ -82,7 +81,7 @@
 
         <!-- Insumos -->
         <div class="col-12">
-            <h5>Insumos</h5>
+            <h6>Insumos</h6>
             @if (Model.Insumos != null && Model.Insumos.Any())
             {
                 <ul>
@@ -100,7 +99,7 @@
 
         <!-- Evidencia -->
         <div class="col-12">
-            <h5>Evidencia del correo aprobado</h5>
+            <h6>Evidencia del correo aprobado</h6>
             @if (!string.IsNullOrEmpty(Model.EvidenciaCorreoRuta))
             {
                 <img src="@Model.EvidenciaCorreoRuta" alt="Evidencia" class="img-fluid img-thumbnail" style="max-width: 300px;" />

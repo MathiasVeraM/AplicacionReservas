@@ -22,12 +22,10 @@ namespace AplicacionReservas.Models
         public int? DocenteId { get; set; }
         public Docente? Docente { get; set; }
         public string? EvidenciaCorreoRuta { get; set; }
-        public bool Aprobado { get; set; } = false;
+        public EstadoAprobacion Aprobado { get; set; } = EstadoAprobacion.NoAprobado;
         public bool EsMantenimiento { get; set; } = false;
         public TimeSpan? HoraInicioMantenimiento { get; set; }
         public TimeSpan? HoraFinMantenimiento { get; set; }
-        [Required]
-        public TipoReserva TipoReserva { get; set; }
         [Required]
         [Range(1, 3, ErrorMessage = "Duración debe ser entre 1 y 3 horas")]
         public int DuracionHoras { get; set; }
@@ -40,12 +38,12 @@ namespace AplicacionReservas.Models
         public ICollection<MiembroEquipo> MiembrosEquipo { get; set; } = new List<MiembroEquipo>();
         public ICollection<Insumo> Insumos { get; set; }
 
-
     }
 
-    public enum TipoReserva
+    public enum EstadoAprobacion
     {
-        HoraSeguida,
-        HoraSeparada
+        NoAprobado,
+        Revision,
+        Aprobado
     }
 }
