@@ -4,6 +4,12 @@
     ViewData["Title"] = "Editar Reserva";
     var miembros = Model.MiembrosEquipo?.ToList() ?? new List<AplicacionReservas.Models.MiembroEquipo>();
     var insumos = Model.Insumos?.ToList() ?? new List<AplicacionReservas.Models.Insumo>();
+    var today = DateTime.Today;
+    int daysUntilNextMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
+    var nextMonday = today.AddDays(daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday);
+    var nextSunday = nextMonday.AddDays(6);
+    var minDate = nextMonday.ToString("yyyy-MM-dd");
+    var maxDate = nextSunday.ToString("yyyy-MM-dd");
 }
 
 <h2 class="mb-4">Editar Reserva</h2>
@@ -35,7 +41,7 @@
             <div class="card-body row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Fecha</label>
-                    <input asp-for="Fecha" type="date" class="form-control" required />
+                    <input type="date" name="Fecha" class="form-control" min="@minDate" max="@maxDate" value="@(Model?.Fecha.ToString("yyyy-MM-dd"))" required />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Laboratorio</label>

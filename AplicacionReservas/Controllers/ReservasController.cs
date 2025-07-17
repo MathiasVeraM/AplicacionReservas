@@ -284,31 +284,39 @@ namespace AplicacionReservas.Controllers
         [HttpGet]
         public IActionResult Calendario()
         {
+            var laboratorios = _context.Laboratorios.ToList(); // ← Carga los laboratorios desde la BD
+            ViewBag.Laboratorios = laboratorios;
+
             return View();
         }
 
         [HttpGet]
-        public JsonResult ObtenerReservas()
+        public JsonResult ObtenerReservas(int? laboratorioId)
         {
             var reservas = _context.Reservas
-                .Include(r => r.Laboratorio)
-                .Include(r => r.ModuloHorario)
-                .Include(r => r.Usuario) // Asegúrate de incluir esto si tu modelo lo permite
-                .Select(r => new
-                {
-                    title = r.EsMantenimiento
-                        ? $"Mantenimiento - {r.Laboratorio.Nombre}"
-                        : $"Reserva - {r.Laboratorio.Nombre}",
-                    start = r.EsMantenimiento
-                        ? r.Fecha.Date.Add(r.HoraInicioMantenimiento.Value)
-                        : r.Fecha.Date.Add(r.ModuloHorario.HoraInicio),
-                    end = r.EsMantenimiento
-                        ? r.Fecha.Date.Add(r.HoraFinMantenimiento.Value)
-                        : r.Fecha.Date.Add(r.ModuloHorario.HoraFin),
-                    laboratorio = r.Laboratorio.Nombre,
-                    email = r.Usuario.Email, // ← Esto es clave
-                    color = r.EsMantenimiento ? "#dc3545" : "#198754"
-                }).ToList();
+            .Include(r => r.Laboratorio)
+            .Include(r => r.ModuloHorario)
+            .Include(r => r.Usuario)
+            .Where(r => (!laboratorioId.HasValue || r.LaboratorioId == laboratorioId)) // Para solo mostrar las aprobadas = && (r.Aprobado == EstadoAprobacion.Aprobado)
+            .Select(r => new
+            {
+                title = r.EsMantenimiento
+                    ? $"Mantenimiento - {r.Laboratorio.Nombre}"
+                    : $"Reserva - {r.Laboratorio.Nombre}",
+
+                start = r.EsMantenimiento
+                    ? r.Fecha.Date.Add(r.HoraInicioMantenimiento.Value).ToString("s")
+                    : r.Fecha.Date.Add(r.ModuloHorario.HoraInicio).ToString("s"),
+
+                end = r.EsMantenimiento
+                    ? r.Fecha.Date.Add(r.HoraFinMantenimiento.Value).ToString("s")
+                    : r.Fecha.Date.Add(r.ModuloHorario.HoraFin).ToString("s"),
+
+                laboratorio = r.Laboratorio.Nombre,
+                email = r.Usuario.Email,
+                color = r.EsMantenimiento ? "#dc3545" : "#198754"
+            })
+            .ToList();
 
             return Json(reservas);
         }

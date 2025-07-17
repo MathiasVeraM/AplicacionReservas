@@ -9,6 +9,15 @@
 
 <div class="container my-4">
     <h2>Calendario de Reservas</h2>
+
+    <select id="laboratorioSelect" class="form-select mb-3">
+        <option value="">-- Todos --</option>
+        @foreach (var lab in ViewBag.Laboratorios as List<AplicacionReservas.Models.Laboratorio>)
+        {
+            <option value="@lab.Id">@lab.Nombre</option>
+        }
+    </select>
+
     <div id="calendar" style="background-color: white; padding: 20px; border-radius: 10px;"></div>
 </div>
 
@@ -16,8 +25,16 @@
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
 
+        // Calcular fecha del próximo lunes (solo para initialDate)
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+        const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
+        const nextMonday = new Date(today);
+        nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
+            initialDate: nextMonday.toISOString().split('T')[0], // Iniciar en lunes próximo
             locale: 'es',
             height: 'auto',
             headerToolbar: {
@@ -28,11 +45,16 @@
             slotMinTime: "07:00:00",
             slotMaxTime: "20:00:00",
             allDaySlot: false,
-            eventColor: '#1a234c',
-            events: '/Reservas/ObtenerReservas',
+
+            events: function (fetchInfo, successCallback, failureCallback) {
+                const laboratorioId = document.getElementById('laboratorioSelect')?.value || '';
+                fetch(`/Reservas/ObtenerReservas?laboratorioId=${encodeURIComponent(laboratorioId)}`)
+                    .then(response => response.json())
+                    .then(data => successCallback(data))
+                    .catch(error => failureCallback(error));
+            },
 
             eventDidMount: function (info) {
-                // Tooltip de Bootstrap
                 const tooltip = new bootstrap.Tooltip(info.el, {
                     title: `Laboratorio: ${info.event.extendedProps.laboratorio}
                             Usuario: ${info.event.extendedProps.email}
@@ -46,6 +68,13 @@
         });
 
         calendar.render();
+
+        // Refrescar eventos cuando cambie la selección del laboratorio
+        const laboratorioSelect = document.getElementById('laboratorioSelect');
+        if (laboratorioSelect) {
+            laboratorioSelect.addEventListener('change', function () {
+                calendar.refetchEvents();
+            });
+        }
     });
 </script>
-

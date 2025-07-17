@@ -2,6 +2,12 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Crear Reserva";
+    var today = DateTime.Today;
+    int daysUntilNextMonday = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
+    var nextMonday = today.AddDays(daysUntilNextMonday == 0 ? 7 : daysUntilNextMonday);
+    var nextSunday = nextMonday.AddDays(6);
+    var minDate = nextMonday.ToString("yyyy-MM-dd");
+    var maxDate = nextSunday.ToString("yyyy-MM-dd");
 }
 
 <h2 class="mb-4">Crear Reserva</h2>
@@ -33,7 +39,7 @@
                 <!-- aquí va todo lo que ya tienes de información general -->
                 <div class="col-md-4">
                     <label class="form-label">Fecha</label>
-                    <input asp-for="Fecha" type="date" class="form-control" required />
+                    <input type="date" name="Fecha" class="form-control" min="@minDate" max="@maxDate" value="@(Model?.Fecha.ToString("yyyy-MM-dd"))"required /> 
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Laboratorio</label>
@@ -66,11 +72,11 @@
                     <label class="form-label">Nombre del proyecto</label>
                     <input asp-for="NombreProyecto" class="form-control" required />
                 </div>
-                <div class="col-md-12">
+                <div class="col-md-8">
                     <label class="form-label">Actividad</label>
                     <input asp-for="Actividad" class="form-control" required />
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <label class="form-label">Evidencia del correo aprobado</label>
                     <input asp-for="EvidenciaCorreoRuta" type="file" accept="image/*" class="form-control" required />
                 </div>
