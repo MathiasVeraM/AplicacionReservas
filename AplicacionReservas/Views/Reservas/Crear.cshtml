@@ -143,6 +143,7 @@
         <div class="card mb-4">
             <div class="card-header">Equipos por laboratorio</div>
             <div class="card-body">
+                @* Agrupamos por laboratorio como antes *@
                 @{
                     var equiposPorLab = ((List<AplicacionReservas.Models.Equipo>)ViewBag.Equipos)
                     .GroupBy(e => e.NombreLaboratorio)
@@ -151,8 +152,18 @@
 
                 @foreach (var grupo in equiposPorLab)
                 {
-                    <fieldset class="mb-3 border rounded p-3">
-                        <legend class="float-none w-auto px-2 fw-bold">@grupo.Key</legend>
+                    string labParaMostrar = grupo.Key;
+                    if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA MOLECULAR"))
+                        labParaMostrar = "-308 Biotecnologia Molecular";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA INDUSTRIAL"))
+                        labParaMostrar = "-309 Biotecnologia Industrial";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA VEGETAL"))
+                        labParaMostrar = "-310 Biotecnologia Vegetal";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA APLICADA"))
+                        labParaMostrar = "-311 Biotecnologia Aplicada";
+
+                    <fieldset class="mb-3 border rounded p-3" data-laboratorio="@labParaMostrar">
+                        <legend class="float-none w-auto px-2 fw-bold">@labParaMostrar</legend>
 
                         <!-- Sección: Uso individual -->
                         <h6 class="text-danger fw-bold">Equipos de uso individual</h6>
@@ -256,6 +267,8 @@
 @section Scripts {
     <script>
         const todosLosModulos = @Html.Raw(Json.Serialize(ViewBag.Modulos));
+        const selectLab = document.getElementById("LaboratorioId");
+        const fieldsets = document.querySelectorAll("[data-laboratorio]");
         // Variables para contar miembros e insumos
         let contadorMiembros = 1;
         let contadorInsumos = 1;
@@ -311,6 +324,24 @@
             const item = btn.closest('.insumo-item');
             item.remove();
         }
+
+        // Funcion para mostrar los datos de los equipos por lab
+        function filtrarEquipos() {
+            const laboratorio = selectLab.options[selectLab.selectedIndex].text; // nombre del laboratorio
+            fieldsets.forEach(f => {
+                if (f.getAttribute("data-laboratorio") === laboratorio) {
+                    f.style.display = "block"; // mostrar
+                } else {
+                    f.style.display = "none"; // ocultar
+                }
+            });
+        }
+
+        // Ejecutar al cambiar el select
+        selectLab.addEventListener("change", filtrarEquipos);
+
+        // Opcional: ejecutar al cargar la página
+        window.addEventListener("DOMContentLoaded", filtrarEquipos);
 
         // Mostrar/ocultar cantidad y unidad en reactivos
         function toggleCantidad(checkbox) {

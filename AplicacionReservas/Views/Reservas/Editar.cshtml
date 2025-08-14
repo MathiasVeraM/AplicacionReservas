@@ -155,27 +155,66 @@
         <div class="card mb-4">
             <div class="card-header">Equipos por laboratorio</div>
             <div class="card-body">
+                @* Agrupamos por laboratorio como antes *@
                 @{
                     var equiposPorLab = ((List<AplicacionReservas.Models.Equipo>)ViewBag.Equipos)
-                        .GroupBy(e => e.NombreLaboratorio)
-                        .OrderBy(g => g.Key);
-
-                    var idsSeleccionados = Model.Equipos.Select(e => e.Id).ToList();
+                    .GroupBy(e => e.NombreLaboratorio)
+                    .OrderBy(g => g.Key);
                 }
 
                 @foreach (var grupo in equiposPorLab)
                 {
-                    <fieldset class="mb-3 border rounded p-3">
-                        <legend class="float-none w-auto px-2 fw-bold">@grupo.Key</legend>
-                        <div class="row">
-                            @foreach (var equipo in grupo)
+                    string labParaMostrar = grupo.Key;
+                    if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA MOLECULAR"))
+                        labParaMostrar = "-308 Biotecnologia Molecular";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA INDUSTRIAL"))
+                        labParaMostrar = "-309 Biotecnologia Industrial";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA VEGETAL"))
+                        labParaMostrar = "-310 Biotecnologia Vegetal";
+                    else if (grupo.Key.ToUpper().Contains("BIOTECNOLOGIA APLICADA"))
+                        labParaMostrar = "-311 Biotecnologia Aplicada";
+
+                    <fieldset class="mb-3 border rounded p-3" data-laboratorio="@labParaMostrar">
+                        <legend class="float-none w-auto px-2 fw-bold">@labParaMostrar</legend>
+
+                        <!-- Sección: Uso individual -->
+                        <h6 class="text-danger fw-bold">Equipos de uso individual</h6>
+                        <div class="row mb-3">
+                            @foreach (var equipo in grupo.Where(e => e.CapacidadGrupos == 1))
                             {
                                 <div class="col-md-4">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id"
-                                               @(idsSeleccionados.Contains(equipo.Id) ? "checked" : "") />
+                                        <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id" />
                                         <label class="form-check-label" for="equipo-@equipo.Id">@equipo.Nombre</label>
                                     </div>
+                                </div>
+                            }
+                            @if (!grupo.Any(e => e.CapacidadGrupos == 1))
+                            {
+                                <div class="col-12">
+                                    <small class="text-muted">No hay equipos de uso individual en este laboratorio.</small>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Sección: Uso compartido -->
+                        <h6 class="text-success fw-bold">Equipos de uso compartido</h6>
+                        <div class="row">
+                            @foreach (var equipo in grupo.Where(e => e.CapacidadGrupos > 1))
+                            {
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id" />
+                                        <label class="form-check-label" for="equipo-@equipo.Id">
+                                            @equipo.Nombre <small class="text-muted">(Capacidad: @equipo.CapacidadGrupos grupos)</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                            @if (!grupo.Any(e => e.CapacidadGrupos > 1))
+                            {
+                                <div class="col-12">
+                                    <small class="text-muted">No hay equipos de uso compartido en este laboratorio.</small>
                                 </div>
                             }
                         </div>
@@ -306,6 +345,24 @@
             const item = btn.closest('.insumo-item');
             item.remove();
         }
+
+        // Funcion para mostrar los datos de los equipos por lab
+        function filtrarEquipos() {
+            const laboratorio = selectLab.options[selectLab.selectedIndex].text; // nombre del laboratorio
+            fieldsets.forEach(f => {
+                if (f.getAttribute("data-laboratorio") === laboratorio) {
+                    f.style.display = "block"; // mostrar
+                } else {
+                    f.style.display = "none"; // ocultar
+                }
+            });
+        }
+
+        // Ejecutar al cambiar el select
+        selectLab.addEventListener("change", filtrarEquipos);
+
+        // Opcional: ejecutar al cargar la página
+        window.addEventListener("DOMContentLoaded", filtrarEquipos);
 
         function cargarModulosPorDuracion(duracion, moduloSeleccionado) {
             const moduloSelect = document.getElementById("moduloHorario");
