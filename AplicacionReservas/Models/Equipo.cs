@@ -12,5 +12,10 @@ namespace AplicacionReservas.Models
 
         [Required]
         public string NombreLaboratorio { get; set; }
+        
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe ser mínimo 1")]
+        public int CapacidadGrupos { get; set; }
+
     }
 }

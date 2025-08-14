@@ -153,14 +153,45 @@
                 {
                     <fieldset class="mb-3 border rounded p-3">
                         <legend class="float-none w-auto px-2 fw-bold">@grupo.Key</legend>
-                        <div class="row">
-                            @foreach (var equipo in grupo)
+
+                        <!-- Sección: Uso individual -->
+                        <h6 class="text-danger fw-bold">Equipos de uso individual</h6>
+                        <div class="row mb-3">
+                            @foreach (var equipo in grupo.Where(e => e.CapacidadGrupos == 1))
                             {
                                 <div class="col-md-4">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id" />
                                         <label class="form-check-label" for="equipo-@equipo.Id">@equipo.Nombre</label>
                                     </div>
+                                </div>
+                            }
+                            @if (!grupo.Any(e => e.CapacidadGrupos == 1))
+                            {
+                                <div class="col-12">
+                                    <small class="text-muted">No hay equipos de uso individual en este laboratorio.</small>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Sección: Uso compartido -->
+                        <h6 class="text-success fw-bold">Equipos de uso compartido</h6>
+                        <div class="row">
+                            @foreach (var equipo in grupo.Where(e => e.CapacidadGrupos > 1))
+                            {
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="equipoIds" value="@equipo.Id" id="equipo-@equipo.Id" />
+                                        <label class="form-check-label" for="equipo-@equipo.Id">
+                                            @equipo.Nombre <small class="text-muted">(Capacidad: @equipo.CapacidadGrupos grupos)</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                            @if (!grupo.Any(e => e.CapacidadGrupos > 1))
+                            {
+                                <div class="col-12">
+                                    <small class="text-muted">No hay equipos de uso compartido en este laboratorio.</small>
                                 </div>
                             }
                         </div>
