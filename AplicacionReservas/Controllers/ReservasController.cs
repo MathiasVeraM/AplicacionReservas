@@ -7,6 +7,8 @@ using System.Security.Claims;
 using DinkToPdf;
 using DinkToPdf.Contracts;
 using System.Text;
+using AplicacionReservas.Interfaces;
+using AplicacionReservas.ViewModels;
 
 namespace AplicacionReservas.Controllers
 {
@@ -14,10 +16,13 @@ namespace AplicacionReservas.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConverter _converter;
-        public ReservasController(AppDbContext context, IConverter converter)
+        private readonly IEmailServices _emailService;
+
+        public ReservasController(AppDbContext context, IConverter converter, IEmailServices emailService)
         {
             _context = context;
             _converter = converter;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -116,6 +121,8 @@ namespace AplicacionReservas.Controllers
             }
 
             reserva.UsuarioId = userId;
+            // Forzar que la fecha siempre se guarde sin hora
+            reserva.Fecha = reserva.Fecha.Date;
 
             // Validaciones generales
             if (!reserva.EsMantenimiento)
@@ -178,6 +185,44 @@ namespace AplicacionReservas.Controllers
             return RedirectToAction("Listado");
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult CrearEspecial()
+        {
+            ViewBag.Laboratorios = _context.Laboratorios.ToList();
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CrearEspecial(ReservaViewModel modelo)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                ModelState.AddModelError("", "No se pudo identificar al usuario.");
+                ViewBag.Laboratorios = _context.Laboratorios.ToList();
+                return View(modelo);
+            }
+
+            var reserva = new Reserva
+            {
+                Fecha = modelo.Fecha,
+                LaboratorioId = modelo.LaboratorioId,
+                HoraInicioMantenimiento = modelo.HoraInicio,
+                HoraFinMantenimiento = modelo.HoraFin,
+                EsMantenimiento = modelo.EsMantenimiento,
+                UsuarioId = userId
+            };
+
+            _context.Reservas.Add(reserva);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Calendario");
+        }
 
         // Metodo auxiliar
         private void CargarListasParaViewBag()
@@ -247,14 +292,26 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
-        public IActionResult Aprobar(int id)
+        public async Task<IActionResult> Aprobar(int id)
         {
-            var reserva = _context.Reservas.Find(id);
+            var reserva = _context.Reservas
+                                  .Include(r => r.Usuario)
+                                  .FirstOrDefault(r => r.Id == id);
+
             if (reserva != null)
             {
                 reserva.Aprobado = EstadoAprobacion.Aprobado;
                 _context.SaveChanges();
+
+                string subject = "Reserva Aprobada";
+                string body = $"Hola, <br/>Tu reserva ha sido aprobada.";
+
+                if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
+                {
+                    await _emailService.EnviarCorreoAsync(reserva.Usuario.Email, subject, body);
+                }
             }
+
             return RedirectToAction("Listado");
         }
 

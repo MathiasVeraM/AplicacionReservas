@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using AplicacionReservas.Extensions;
+using AplicacionReservas.Services;
+using AplicacionReservas.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,9 @@ var path = Path.Combine(Directory.GetCurrentDirectory(), "LibreriaPDF", "libwkht
 context.LoadUnmanagedLibrary(path);
 
 builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+
+builder.Services.AddSingleton<IEmailServices, EmailService>();
+
 
 var app = builder.Build();
 

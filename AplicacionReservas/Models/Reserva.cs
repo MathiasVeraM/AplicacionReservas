@@ -22,7 +22,7 @@ namespace AplicacionReservas.Models
         public int? DocenteId { get; set; }
         public Docente? Docente { get; set; }
         public string? EvidenciaCorreoRuta { get; set; }
-        public EstadoAprobacion Aprobado { get; set; } = EstadoAprobacion.NoAprobado;
+        public EstadoAprobacion Aprobado { get; set; } = EstadoAprobacion.Pendiente;
         public bool EsMantenimiento { get; set; } = false;
         public TimeSpan? HoraInicioMantenimiento { get; set; }
         public TimeSpan? HoraFinMantenimiento { get; set; }
@@ -44,6 +44,7 @@ namespace AplicacionReservas.Models
     {
         NoAprobado,
         Revision,
-        Aprobado
+        Aprobado,
+        Pendiente
     }
 }
