@@ -9,6 +9,7 @@ using DinkToPdf.Contracts;
 using System.Text;
 using AplicacionReservas.Interfaces;
 using AplicacionReservas.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace AplicacionReservas.Controllers
 {
@@ -17,12 +18,14 @@ namespace AplicacionReservas.Controllers
         private readonly AppDbContext _context;
         private readonly IConverter _converter;
         private readonly IEmailServices _emailService;
+        private readonly ILogger<ReservasController> _logger;
 
-        public ReservasController(AppDbContext context, IConverter converter, IEmailServices emailService)
+        public ReservasController(AppDbContext context, IConverter converter, IEmailServices emailService, ILogger<ReservasController> logger)
         {
             _context = context;
             _converter = converter;
             _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -182,6 +185,34 @@ namespace AplicacionReservas.Controllers
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
+            // Envio de correos a administradores
+
+            string subject = "Nueva reserva creada";
+            string body = $@"
+            Hola, <br/><br/>
+            Se ha creado una nueva reserva pendiente de aprobación:<br/>
+            <strong>Fecha:</strong> {reserva.Fecha}<br/>
+            <strong>Laboratorio:</strong> {reserva.Laboratorio.Nombre}<br/>
+            <strong>Creado por:</strong> {reserva.Usuario.Email}<br/><br/>
+            Por favor revisa el panel de administración.";
+
+            var adminEmails = _context.Usuario
+                          .Where(u => u.Rol == "Admin")
+                          .Select(u => u.Email)
+                          .ToList();
+
+            foreach (var email in adminEmails)
+            {
+                try
+                {
+                    await _emailService.EnviarCorreoAsync(email, subject, body);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "No se pudo enviar el correo a {Email}", email);
+                }
+            }
+
             return RedirectToAction("Listado");
         }
 
@@ -221,7 +252,7 @@ namespace AplicacionReservas.Controllers
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Calendario");
+            return RedirectToAction("Listado");
         }
 
         // Metodo auxiliar
@@ -292,7 +323,7 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Aprobar(int id)
+        public async Task<IActionResult> Aprobar(int id, string? observaciones)
         {
             var reserva = _context.Reservas
                                   .Include(r => r.Usuario)
@@ -304,11 +335,28 @@ namespace AplicacionReservas.Controllers
                 _context.SaveChanges();
 
                 string subject = "Reserva Aprobada";
-                string body = $"Hola, <br/>Tu reserva ha sido aprobada.";
+                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido aprobada.";
 
                 if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
                 {
-                    await _emailService.EnviarCorreoAsync(reserva.Usuario.Email, subject, body);
+                    if (!string.IsNullOrEmpty(observaciones))
+                    {
+                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido aprobada.<br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                    }
+
+                    try
+                    {
+                        await _emailService.EnviarCorreoAsync(reserva.Usuario.Email, subject, body);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Aquí puedes loguear el error
+                        // Por ejemplo, usando ILogger
+                        _logger.LogError(ex, "Error enviando correo de aprobación a {Email}", reserva.Usuario.Email);
+
+                        // Opcional: mostrar alerta en la vista, pero no detener la acción
+                        TempData["MensajeErrorCorreo"] = "No se pudo enviar el correo, pero la reserva fue aprobada.";
+                    }
                 }
             }
 
@@ -316,25 +364,84 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
-        public IActionResult Rechazar(int id)
+        public async Task<IActionResult> Rechazar(int id, string? observaciones)
         {
-            var reserva = _context.Reservas.Find(id);
+            var reserva = _context.Reservas
+                                  .Include(r => r.Usuario)
+                                  .FirstOrDefault(r => r.Id == id);
+
             if (reserva != null)
             {
                 reserva.Aprobado = EstadoAprobacion.NoAprobado;
                 _context.SaveChanges();
+
+                string subject = "Reserva No Aprobada";
+                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido rechazada.";
+
+                if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
+                {
+                    if (!string.IsNullOrEmpty(observaciones))
+                    {
+                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido rechazada por estos motivos:<br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                    }
+
+                    try
+                    {
+                        await _emailService.EnviarCorreoAsync(reserva.Usuario.Email, subject, body);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Aquí puedes loguear el error
+                        // Por ejemplo, usando ILogger
+                        _logger.LogError(ex, "Error enviando correo de rechazo a {Email}", reserva.Usuario.Email);
+
+                        // Opcional: mostrar alerta en la vista, pero no detener la acción
+                        TempData["MensajeErrorCorreo"] = "No se pudo enviar el correo, pero la reserva fue rechazada.";
+                    }
+                }
             }
+
             return RedirectToAction("Listado");
         }
 
         [HttpPost]
-        public IActionResult EnRevision(int id) {
-            var reserva = _context.Reservas.Find(id);
-            if(reserva != null)
+        public async Task<IActionResult> EnRevision(int id, string? observaciones) {
+
+            var reserva = _context.Reservas
+                                  .Include(r => r.Usuario)
+                                  .FirstOrDefault(r => r.Id == id);
+
+            if (reserva != null)
             {
                 reserva.Aprobado = EstadoAprobacion.Revision;
                 _context.SaveChanges();
+
+                string subject = "Reserva Aprobada Parcialmente";
+                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} necesita modificaciones en algunos campos.";
+
+                if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
+                {
+                    if (!string.IsNullOrEmpty(observaciones))
+                    {
+                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} necesita modificaciones en algunos campos: <br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                    }
+
+                    try
+                    {
+                        await _emailService.EnviarCorreoAsync(reserva.Usuario.Email, subject, body);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Aquí puedes loguear el error
+                        // Por ejemplo, usando ILogger
+                        _logger.LogError(ex, "Error enviando correo de pendiente revisión a {Email}", reserva.Usuario.Email);
+
+                        // Opcional: mostrar alerta en la vista, pero no detener la acción
+                        TempData["MensajeErrorCorreo"] = "No se pudo enviar el correo, pero la reserva fue asignada como pendiente revisión.";
+                    }
+                }
             }
+
             return RedirectToAction("Listado");
         }
 

@@ -98,7 +98,10 @@
                                 <span class="badge bg-danger">Rechazado</span>
                                 break;
                             case EstadoAprobacion.Revision:
-                                <span class="badge bg-warning text-dark">Pendiente Revision</span>
+                                <span class="badge bg-warning text-dark">Hacer Cambios</span>
+                                break;
+                            case EstadoAprobacion.Pendiente:
+                                <span class="badge bg-info">Pendiente</span>
                                 break;
                         }
                     }
@@ -111,20 +114,99 @@
                             <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-info">Ver Detalles</a>
                         </td>
                         <td>
-                            <form asp-action="Aprobar" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-success btn-sm mt-1">Aprobar</button>
-                            </form>
+                            <!-- Botón para aprobar -->
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAprobar">
+                                Aprobar
+                            </button>
+
+                            <!-- Modal Aprobar -->
+                            <div class="modal fade" id="modalAprobar" tabindex="-1" aria-labelledby="modalAprobarLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form id="formAprobar" method="post" asp-action="Aprobar">
+                                            <input type="hidden" name="id" value="@r.Id" />
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalAprobarLabel">Aprobar Reserva</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="observacionesAprobar" class="form-label">Observaciones (opcional)</label>
+                                                    <textarea class="form-control" id="observacionesAprobar" name="observaciones" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-success">Enviar y Aprobar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
                             <br />
-                            <form asp-action="Rechazar" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-danger btn-sm mt-1">Rechazar</button>
-                            </form>
+
+                            <!-- Botón para rechazar -->
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                                Rechazar
+                            </button>
+
+                            <!-- Modal Rechazar -->
+                            <div class="modal fade" id="modalRechazar" tabindex="-1" aria-labelledby="modalRechazarLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form id="formRechazar" method="post" asp-action="Rechazar">
+                                            <input type="hidden" name="id" value="@r.Id" />
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalRechazarLabel">Rechazar Reserva</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="observacionesRechazar" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesRechazar" name="observaciones" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-danger">Enviar y Rechazar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
                             <br />
-                            <form asp-action="EnRevision" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@r.Id" />
-                                <button type="submit" class="btn btn-warning btn-sm mt-1">En Revisión</button>
-                            </form>
+
+                            <!-- Botón para Aprobado Parcial -->
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalRevision">
+                                Aprobado Parcial
+                            </button>
+
+                            <!-- Modal Revisión -->
+                            <div class="modal fade" id="modalRevision" tabindex="-1" aria-labelledby="modalRevisionLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form id="formRevision" method="post" asp-action="EnRevision">
+                                            <input type="hidden" name="id" value="@r.Id" />
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalRevisionLabel">Poner en Revisión la Reserva</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="observacionesRevision" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesRevision" name="observaciones" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-warning">Enviar y Revisar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     }
                     else
