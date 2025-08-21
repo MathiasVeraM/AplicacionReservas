@@ -328,7 +328,7 @@ namespace AplicacionReservas.Controllers
                 query = query.Where(r => r.UsuarioId == usuarioId);
             }
 
-            var reservas = query.OrderByDescending(r => r.Fecha).ToList();
+            var reservas = query.OrderByDescending(r => r.Id).ToList();
 
             return View(reservas);
         }
