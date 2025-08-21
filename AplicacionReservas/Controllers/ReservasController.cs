@@ -73,7 +73,18 @@ namespace AplicacionReservas.Controllers
                 return View(reserva);
             }
 
-            // Validar traslape de reservas
+            // Determinar capacidad según laboratorio
+            int capacidadPorModulo = 2; // valor por defecto
+            if (reserva.Laboratorio.Nombre == "-309 Biotecnologia Industrial")
+            {
+                capacidadPorModulo = 3;
+            }
+            else
+            {
+                capacidadPorModulo = 2; // los demás laboratorios
+            }
+
+            // Validar el cupo de los laboratorios para hacer las reservas
             var reservasTraslapadas = await _context.Reservas
                 .Include(r => r.ModuloHorario)
                 .Where(r =>
@@ -85,9 +96,9 @@ namespace AplicacionReservas.Controllers
                 )
                 .CountAsync();
 
-            if (reservasTraslapadas >= 3)
+            if (reservasTraslapadas >= capacidadPorModulo)
             {
-                ModelState.AddModelError("", "Ya existen 3 reservas traslapadas para ese laboratorio y horario.");
+                ModelState.AddModelError("", $"Ya se alcanzó el límite de {capacidadPorModulo} reserva(s) para este laboratorio y módulo.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
