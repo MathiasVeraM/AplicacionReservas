@@ -354,6 +354,8 @@ namespace AplicacionReservas.Controllers
         {
             var reserva = _context.Reservas
                                   .Include(r => r.Usuario)
+                                  .Include(r => r.Laboratorio)
+                                  .Include(r => r.ModuloHorario)
                                   .FirstOrDefault(r => r.Id == id);
 
             if (reserva != null)
@@ -362,13 +364,21 @@ namespace AplicacionReservas.Controllers
                 _context.SaveChanges();
 
                 string subject = "Reserva Aprobada";
-                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido aprobada.";
+                string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 ha sido aprobada con éxito.";
 
                 if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
                 {
                     if (!string.IsNullOrEmpty(observaciones))
                     {
-                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido aprobada.<br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                        body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 ha sido aprobada con éxito.
+                                <br/><br/><strong>Observaciones del administrador:</strong>
+                                <br/>{observaciones}";
                     }
 
                     try
@@ -395,6 +405,8 @@ namespace AplicacionReservas.Controllers
         {
             var reserva = _context.Reservas
                                   .Include(r => r.Usuario)
+                                  .Include(r => r.Laboratorio)
+                                  .Include(r => r.ModuloHorario)
                                   .FirstOrDefault(r => r.Id == id);
 
             if (reserva != null)
@@ -403,13 +415,21 @@ namespace AplicacionReservas.Controllers
                 _context.SaveChanges();
 
                 string subject = "Reserva No Aprobada";
-                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido rechazada.";
+                string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 ha sido rechazada.";
 
                 if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
                 {
                     if (!string.IsNullOrEmpty(observaciones))
                     {
-                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} ha sido rechazada por estos motivos:<br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                        body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 ha sido rechazada por estos motivos:
+                                <br/><br/><strong>Observaciones del administrador:</strong>
+                                <br/>{observaciones}";
                     }
 
                     try
@@ -436,6 +456,8 @@ namespace AplicacionReservas.Controllers
 
             var reserva = _context.Reservas
                                   .Include(r => r.Usuario)
+                                  .Include(r => r.Laboratorio)
+                                  .Include(r => r.ModuloHorario)
                                   .FirstOrDefault(r => r.Id == id);
 
             if (reserva != null)
@@ -444,13 +466,21 @@ namespace AplicacionReservas.Controllers
                 _context.SaveChanges();
 
                 string subject = "Reserva Aprobada Parcialmente";
-                string body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} necesita modificaciones en algunos campos.";
+                string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 necesita modificaciones en algunos campos.";
 
                 if (!string.IsNullOrEmpty(reserva.Usuario?.Email))
                 {
                     if (!string.IsNullOrEmpty(observaciones))
                     {
-                        body = $"Hola, <br/>Tu reserva {reserva.Fecha} - {reserva.Laboratorio} necesita modificaciones en algunos campos: <br/><br/><strong>Observaciones del administrador:</strong><br/>{observaciones}";
+                        body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
+                                 laboratorio {reserva.Laboratorio.Nombre}
+                                 módulo {reserva.ModuloHorario.Nombre}
+                                 necesita modificaciones en algunos campos:
+                                 <br/><br/><strong>Observaciones del administrador:</strong>
+                                 <br/>{observaciones}";
                     }
 
                     try

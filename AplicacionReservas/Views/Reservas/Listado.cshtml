@@ -115,24 +115,24 @@
                         </td>
                         <td>
                             <!-- Botón para aprobar -->
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAprobar">
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAprobar-@r.Id">
                                 Aprobar
                             </button>
 
                             <!-- Modal Aprobar -->
-                            <div class="modal fade" id="modalAprobar" tabindex="-1" aria-labelledby="modalAprobarLabel" aria-hidden="true">
+                            <div class="modal fade" id="modalAprobar-@r.Id" tabindex="-1" aria-labelledby="modalAprobarLabel-@r.Id" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form id="formAprobar" method="post" asp-action="Aprobar">
+                                        <form id="formAprobar-@r.Id" method="post" asp-action="Aprobar">
                                             <input type="hidden" name="id" value="@r.Id" />
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="modalAprobarLabel">Aprobar Reserva</h5>
+                                                <h5 class="modal-title" id="modalAprobarLabel-@r.Id">Aprobar Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="mb-3">
-                                                    <label for="observacionesAprobar" class="form-label">Observaciones (opcional)</label>
-                                                    <textarea class="form-control" id="observacionesAprobar" name="observaciones" rows="3"></textarea>
+                                                    <label for="observacionesAprobar-@r.Id" class="form-label">Observaciones (opcional)</label>
+                                                    <textarea class="form-control" id="observacionesAprobar-@r.Id" name="observaciones" rows="3"></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -147,24 +147,24 @@
                             <br />
 
                             <!-- Botón para rechazar -->
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar">
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalRechazar-@r.Id">
                                 Rechazar
                             </button>
 
                             <!-- Modal Rechazar -->
-                            <div class="modal fade" id="modalRechazar" tabindex="-1" aria-labelledby="modalRechazarLabel" aria-hidden="true">
+                            <div class="modal fade" id="modalRechazar-@r.Id" tabindex="-1" aria-labelledby="modalRechazarLabel-@r.Id" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form id="formRechazar" method="post" asp-action="Rechazar">
+                                        <form id="formRechazar-@r.Id" method="post" asp-action="Rechazar">
                                             <input type="hidden" name="id" value="@r.Id" />
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="modalRechazarLabel">Rechazar Reserva</h5>
+                                                <h5 class="modal-title" id="modalRechazarLabel-@r.Id">Rechazar Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="mb-3">
-                                                    <label for="observacionesRechazar" class="form-label">Observaciones</label>
-                                                    <textarea class="form-control" id="observacionesRechazar" name="observaciones" rows="3"></textarea>
+                                                    <label for="observacionesRechazar-@r.Id" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesRechazar-@r.Id" name="observaciones" rows="3"></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -179,24 +179,24 @@
                             <br />
 
                             <!-- Botón para Aprobado Parcial -->
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalRevision">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalRevision-@r.Id">
                                 Aprobado Parcial
                             </button>
 
                             <!-- Modal Revisión -->
-                            <div class="modal fade" id="modalRevision" tabindex="-1" aria-labelledby="modalRevisionLabel" aria-hidden="true">
+                            <div class="modal fade" id="modalRevision-@r.Id" tabindex="-1" aria-labelledby="modalRevisionLabel-@r.Id" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
-                                        <form id="formRevision" method="post" asp-action="EnRevision">
+                                        <form id="formRevision-@r.Id" method="post" asp-action="EnRevision">
                                             <input type="hidden" name="id" value="@r.Id" />
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="modalRevisionLabel">Poner en Revisión la Reserva</h5>
+                                                <h5 class="modal-title" id="modalRevisionLabel-@r.Id">Poner en Revisión la Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body">
                                                 <div class="mb-3">
-                                                    <label for="observacionesRevision" class="form-label">Observaciones</label>
-                                                    <textarea class="form-control" id="observacionesRevision" name="observaciones" rows="3"></textarea>
+                                                    <label for="observacionesRevision-@r.Id" class="form-label">Observaciones</label>
+                                                    <textarea class="form-control" id="observacionesRevision-@r.Id" name="observaciones" rows="3"></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
