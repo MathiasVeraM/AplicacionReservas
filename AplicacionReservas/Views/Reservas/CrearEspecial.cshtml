@@ -1,0 +1,77 @@
+﻿@model AplicacionReservas.ViewModels.ReservaViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Reserva Especial";
+}
+
+<div class="container py-4" style="max-width: 700px;">
+    <h2 class="mb-4 text-center fw-bold text-black">Crear Reserva Especial</h2>
+
+    <form asp-action="CrearEspecial" method="post" class="needs-validation" novalidate>
+        <div class="form-check form-switch mb-4">
+            <input asp-for="EsMantenimiento" class="form-check-input" type="checkbox" id="esMantenimientoSwitch" />
+            <label class="form-check-label fw-semibold" for="esMantenimientoSwitch">
+                <i class="bi bi-tools me-1"></i> ¿Es mantenimiento?
+            </label>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label asp-for="Fecha" class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
+                <input asp-for="Fecha" type="date" class="form-control" required />
+                <div class="invalid-feedback">
+                    Por favor, selecciona una fecha válida.
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="HoraInicio" class="form-label fw-semibold">Hora inicio <span class="text-danger">*</span></label>
+                <input asp-for="HoraInicio" type="time" class="form-control" required />
+                <div class="invalid-feedback">
+                    Ingresa la hora de inicio.
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="HoraFin" class="form-label fw-semibold">Hora fin <span class="text-danger">*</span></label>
+                <input asp-for="HoraFin" type="time" class="form-control" required />
+                <div class="invalid-feedback">
+                    Ingresa la hora de fin.
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="LaboratorioId" class="form-label fw-semibold">Laboratorio <span class="text-danger">*</span></label>
+            <select asp-for="LaboratorioId" asp-items="@(new SelectList(ViewBag.Laboratorios, "Id", "Nombre"))" class="form-select" required>
+                <option value="">-- Selecciona un laboratorio --</option>
+            </select>
+            <div class="invalid-feedback">
+                Selecciona un laboratorio.
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-dark w-100 fw-semibold">
+            <i class="bi bi-save me-2"></i> Guardar Reserva
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Bootstrap 5 validation example
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+}
+

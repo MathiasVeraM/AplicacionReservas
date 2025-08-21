@@ -16,7 +16,7 @@
         <header>
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
                 <div class="container-fluid">
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <a class="navbar-brand" asp-area="" asp-controller="Reservas" asp-action="Calendario">
                         <img src="~/img/udla.png" style="height: 35px; color: #fefefe;" />
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
@@ -26,23 +26,31 @@
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                         <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Calendario"><i class="bi bi-calendar-week"></i> Calendario</a>
                             </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="CrearEspecial"><i class="bi bi-feather"></i> Nueva Reserva</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Crear"><i class="bi bi-feather"></i> Nueva Reserva</a>
+                                </li>
+                            }
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Calendario">Calendario</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Crear">Nueva Reserva</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Listado">Listado</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Listado"><i class="bi bi-list-ul"></i> Listado</a>
                             </li>
                         </ul>
                         @if (User.Identity.IsAuthenticated)
                         {
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="RegistrarAdmin"><i class="bi bi-person-fill-add"></i> Nuevo Administrador</a>
+                            }
                             <form asp-area="" asp-controller="Cuenta" asp-action="Logout" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-link fs-4 text-dark" style="text-decoration: none;">
                                     <i class="bi bi-box-arrow-right"></i>
