@@ -166,6 +166,27 @@ namespace AplicacionReservas.Controllers
                 .Where(e => equipoIds.Contains(e.Id))
                 .ToList();
 
+            //  Validar capacidad de los equipos seleccionados
+            foreach (var equipo in reserva.Equipos)
+            {
+                // Reservas existentes en el mismo laboratorio, fecha y módulo con este equipo
+                var reservasEquipo = await _context.Reservas
+                    .Include(r => r.Equipos)
+                    .Where(r => r.Fecha == reserva.Fecha &&
+                                r.LaboratorioId == reserva.LaboratorioId &&
+                                r.ModuloHorarioId == reserva.ModuloHorarioId &&
+                                r.Equipos.Any(eq => eq.Id == equipo.Id))
+                    .CountAsync();
+
+                if (reservasEquipo >= equipo.CapacidadGrupos)
+                {
+                    ModelState.AddModelError("",
+                        $"El equipo '{equipo.Nombre}' ya alcanzó su límite de {equipo.CapacidadGrupos} grupo(s) en este módulo.");
+                    CargarListasParaViewBag();
+                    return View(reserva);
+                }
+            }
+
             reserva.ReservaReactivos = new List<ReservaReactivo>();
             foreach (var reactivoId in reactivosSeleccionados)
             {
@@ -192,8 +213,8 @@ namespace AplicacionReservas.Controllers
             Hola, <br/><br/>
             Se ha creado una nueva reserva pendiente de aprobación:<br/>
             <strong>Fecha:</strong> {reserva.Fecha}<br/>
-            <strong>Laboratorio:</strong> {reserva.Laboratorio.Nombre}<br/>
-            <strong>Creado por:</strong> {reserva.Usuario.Email}<br/><br/>
+            <strong>Laboratorio:</strong> {reserva.Laboratorio}<br/>
+            <strong>Creado por:</strong> {reserva.Usuario}<br/><br/>
             Por favor revisa el panel de administración.";
 
             var adminEmails = _context.Usuario
