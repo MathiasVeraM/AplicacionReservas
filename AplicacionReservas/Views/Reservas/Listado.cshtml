@@ -125,7 +125,7 @@
                                     <div class="modal-content">
                                         <form id="formAprobar-@r.Id" method="post" asp-action="Aprobar">
                                             <input type="hidden" name="id" value="@r.Id" />
-                                            <div class="modal-header">
+                                            <div class="modal-header bg-success text-white">
                                                 <h5 class="modal-title" id="modalAprobarLabel-@r.Id">Aprobar Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
@@ -157,7 +157,7 @@
                                     <div class="modal-content">
                                         <form id="formRechazar-@r.Id" method="post" asp-action="Rechazar">
                                             <input type="hidden" name="id" value="@r.Id" />
-                                            <div class="modal-header">
+                                            <div class="modal-header bg-danger text-white">
                                                 <h5 class="modal-title" id="modalRechazarLabel-@r.Id">Rechazar Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
@@ -189,7 +189,7 @@
                                     <div class="modal-content">
                                         <form id="formRevision-@r.Id" method="post" asp-action="EnRevision">
                                             <input type="hidden" name="id" value="@r.Id" />
-                                            <div class="modal-header">
+                                            <div class="modal-header bg-warning">
                                                 <h5 class="modal-title" id="modalRevisionLabel-@r.Id">Poner en Revisión la Reserva</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
