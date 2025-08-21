@@ -529,7 +529,12 @@ namespace AplicacionReservas.Controllers
             .Include(r => r.Laboratorio)
             .Include(r => r.ModuloHorario)
             .Include(r => r.Usuario)
-            .Where(r => (!laboratorioId.HasValue || r.LaboratorioId == laboratorioId)) // Para solo mostrar las aprobadas = && (r.Aprobado == EstadoAprobacion.Aprobado)
+            .Where(r =>
+                (!laboratorioId.HasValue || r.LaboratorioId == laboratorioId) &&
+                (r.Aprobado == EstadoAprobacion.Pendiente ||
+                 r.Aprobado == EstadoAprobacion.Aprobado ||
+                 r.EsMantenimiento) // incluir mantenimiento
+            )
             .Select(r => new
             {
                 title = r.EsMantenimiento
@@ -546,7 +551,10 @@ namespace AplicacionReservas.Controllers
 
                 laboratorio = r.Laboratorio.Nombre,
                 email = r.Usuario.Email,
-                color = r.EsMantenimiento ? "#dc3545" : "#198754"
+                color = r.EsMantenimiento ? "#dc3545" : // Rojo mantenimiento
+                    r.Aprobado == EstadoAprobacion.Aprobado ? "#198754" : // Verde aprobadas
+                    r.Aprobado == EstadoAprobacion.Pendiente ? "#e4ad06" : "#6c757d", // Amarillo pendientes, gris por defecto
+                textColor = r.EsMantenimiento ? "#ffffff" : "#000000" // blanco para mantenimiento, negro para reservas
             })
             .ToList();
 
