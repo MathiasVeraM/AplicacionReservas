@@ -206,15 +206,21 @@ namespace AplicacionReservas.Controllers
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
+            // Obtener los datos desde la base de datos:
+            var reservaConDatos = await _context.Reservas
+                .Include(r => r.Laboratorio)
+                .Include(r => r.Usuario)
+                .FirstOrDefaultAsync(r => r.Id == reserva.Id);
+
             // Envio de correos a administradores
 
             string subject = "Nueva reserva creada";
             string body = $@"
             Hola, <br/><br/>
             Se ha creado una nueva reserva pendiente de aprobación:<br/>
-            <strong>Fecha:</strong> {reserva.Fecha}<br/>
-            <strong>Laboratorio:</strong> {reserva.Laboratorio}<br/>
-            <strong>Creado por:</strong> {reserva.Usuario}<br/><br/>
+            <strong>Fecha:</strong> {reservaConDatos.Fecha:dd/MM/yyyy}<br/>
+            <strong>Laboratorio:</strong> {reservaConDatos.Laboratorio.Nombre}<br/>
+            <strong>Creado por:</strong> {reservaConDatos.Usuario.Email}<br/><br/>
             Por favor revisa el panel de administración.";
 
             var adminEmails = _context.Usuario
