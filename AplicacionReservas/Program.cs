@@ -62,6 +62,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Ruta raíz que redirige a /Reservas/Calendario
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/Reservas/Calendario");
+    return Task.CompletedTask;
+});
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Reservas}/{action=Calendario}/{id?}");

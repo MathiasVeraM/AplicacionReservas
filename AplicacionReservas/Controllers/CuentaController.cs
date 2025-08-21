@@ -73,7 +73,7 @@ namespace AplicacionReservas.Controllers
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties);
 
-            return RedirectToAction("Index", "Home"); // Redirige a la página principal
+            return RedirectToAction("Calendario", "Reservas"); // Redirige a la página principal
         }
 
         [HttpPost]
@@ -161,7 +161,7 @@ namespace AplicacionReservas.Controllers
             _context.Usuario.Add(nuevoAdmin);
             _context.SaveChanges();
 
-            return RedirectToAction("Index","Home");
+            return RedirectToAction("Calendario","Reservas");
         }
 
         [HttpGet]
