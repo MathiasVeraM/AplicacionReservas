@@ -12,5 +12,9 @@ namespace AplicacionReservas.Models
         [Required]
         [NotNull]
         public string? Nombre { get; set; }
+
+        [Required]
+        [AllowNull]
+        public string? Codigo { get; set; }
     }
 }

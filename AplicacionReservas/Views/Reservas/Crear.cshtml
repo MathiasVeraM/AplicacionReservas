@@ -221,14 +221,27 @@
     <!-- Paso 5: Reactivos -->
     <div class="form-step" style="display:none;">
         <div class="card mb-4">
-            <div class="card-header">Reactivos</div>
-            <div class="card-body row g-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Reactivos</span>
+                <div class="input-group w-50 mb-0">
+                    <input type="text" id="busquedaReactivo" class="form-control" placeholder="Buscar reactivo..." />
+                    <button class="btn btn-outline-secondary" type="button" onclick="buscarReactivo()">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body row g-3" id="listaReactivos">
                 @foreach (var reactivo in ViewBag.Reactivos)
                 {
-                    <div class="col-md-12 d-flex align-items-center mb-2" id="reactivo-container-@reactivo.Id">
+                    <div class="col-md-12 d-flex align-items-center mb-2 reactivo-item"
+                         data-nombre="@reactivo.Nombre.ToLower()"
+                         data-codigo="@reactivo.Codigo.ToLower()"
+                         id="reactivo-container-@reactivo.Id">
+
                         <div class="form-check me-3">
                             <input class="form-check-input" type="checkbox" name="reactivosSeleccionados" value="@reactivo.Id" id="reactivo-@reactivo.Id" onchange="toggleCantidad(this)" />
-                            <label class="form-check-label" for="reactivo-@reactivo.Id">@reactivo.Nombre</label>
+                            <label class="form-check-label" for="reactivo-@reactivo.Id">@reactivo.Codigo - @reactivo.Nombre</label>
                         </div>
 
                         <input type="number" name="cantidades[@reactivo.Id]" placeholder="Cantidad" class="form-control me-2 w-25" min="1" style="display:none;" />
@@ -335,6 +348,23 @@
                     f.style.display = "block"; // mostrar
                 } else {
                     f.style.display = "none"; // ocultar
+                }
+            });
+        }
+
+        // Funcion para buscar reactivos
+        function buscarReactivo() {
+            let input = document.getElementById("busquedaReactivo").value.toLowerCase();
+            let items = document.querySelectorAll(".reactivo-item");
+
+            items.forEach(item => {
+                let nombre = item.getAttribute("data-nombre");
+                let codigo = item.getAttribute("data-codigo");
+
+                if (nombre.includes(input) || codigo.includes(input)) {
+                    item.classList.remove("d-none");
+                } else {
+                    item.classList.add("d-none");
                 }
             });
         }
