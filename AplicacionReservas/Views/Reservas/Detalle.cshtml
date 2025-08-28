@@ -8,7 +8,7 @@
 
 <div class="card shadow">
     <div class="card-body row g-4">
-        <h6>Información general</h6>
+        <h6>Información general - Reserva @Model.CodigoReserva</></h6>
         <!-- Información general -->
         <div class="col-md-6">
             <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
@@ -23,6 +23,7 @@
             <p><strong>Laboratorio:</strong> @Model.Laboratorio?.Nombre ?? "—"</p>
             <p><strong>Módulo:</strong> @Model.ModuloHorario?.Nombre ?? "—"</p>
             <p><strong>Duración:</strong> @Model.DuracionHoras horas</p>
+            <p><strong>Fecha Creacion:</strong> @Model.FechaCreacion</p>
         </div>
 
         <!-- Miembros del equipo -->
@@ -110,6 +111,15 @@
             }
         </div>
 
+        <!-- Observaciones Finalizada la Reserva -->
+        @if (!string.IsNullOrEmpty(Model.ObservacionesFinales))
+        {
+            <div class="col-12">
+                <h6>Observaciones Finalizada la Reserva</h6>
+                <p>@Model.ObservacionesFinales</p>
+            </div>
+        }
+        
         <!-- Botones -->
         <div class="col-12 d-flex gap-3 mt-4">
             <a asp-action="Listado" class="btn btn-dark">Volver</a>

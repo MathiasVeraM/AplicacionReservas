@@ -231,6 +231,7 @@ namespace AplicacionReservas.Controllers
             string body = $@"
             Hola, <br/><br/>
             Se ha creado una nueva reserva pendiente de aprobación:<br/>
+            <strong>Codigo:</strong> {reservaConDatos.CodigoReserva}<br/>
             <strong>Fecha:</strong> {reservaConDatos.Fecha:dd/MM/yyyy}<br/>
             <strong>Laboratorio:</strong> {reservaConDatos.Laboratorio.Nombre}<br/>
             <strong>Creado por:</strong> {reservaConDatos.Usuario.Email}<br/><br/>
@@ -382,6 +383,7 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Aprobar(int id, string? observaciones)
         {
             var reserva = _context.Reservas
@@ -395,7 +397,7 @@ namespace AplicacionReservas.Controllers
                 reserva.Aprobado = EstadoAprobacion.Aprobado;
                 _context.SaveChanges();
 
-                string subject = "Reserva Aprobada";
+                string subject = $"Reserva Aprobada - {reserva.CodigoReserva}";
                 string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
                                  laboratorio {reserva.Laboratorio.Nombre}
                                  módulo {reserva.ModuloHorario.Nombre}
@@ -433,6 +435,7 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Rechazar(int id, string? observaciones)
         {
             var reserva = _context.Reservas
@@ -446,7 +449,7 @@ namespace AplicacionReservas.Controllers
                 reserva.Aprobado = EstadoAprobacion.NoAprobado;
                 _context.SaveChanges();
 
-                string subject = "Reserva No Aprobada";
+                string subject = $"Reserva Rechazada - {reserva.CodigoReserva}";
                 string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
                                  laboratorio {reserva.Laboratorio.Nombre}
                                  módulo {reserva.ModuloHorario.Nombre}
@@ -484,6 +487,7 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EnRevision(int id, string? observaciones) {
 
             var reserva = _context.Reservas
@@ -497,7 +501,7 @@ namespace AplicacionReservas.Controllers
                 reserva.Aprobado = EstadoAprobacion.Revision;
                 _context.SaveChanges();
 
-                string subject = "Reserva Aprobada Parcialmente";
+                string subject = $"Reserva Aprobada Parcialmente - {reserva.CodigoReserva}";
                 string body = $@"Hola, <br/>Tu reserva del día {reserva.Fecha:dd/MM/yyyy}
                                  laboratorio {reserva.Laboratorio.Nombre}
                                  módulo {reserva.ModuloHorario.Nombre}
@@ -532,6 +536,20 @@ namespace AplicacionReservas.Controllers
             }
 
             return RedirectToAction("Listado");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GuardarObservaciones(int id, string observacionesFinales)
+        {
+            var reserva = _context.Reservas.FirstOrDefault(r => r.Id == id);
+            if (reserva == null)
+                return NotFound();
+
+            reserva.ObservacionesFinales = observacionesFinales;
+            _context.SaveChanges();
+
+            return RedirectToAction("Listado"); // vuelve al listado de reservas
         }
 
         [HttpGet]
