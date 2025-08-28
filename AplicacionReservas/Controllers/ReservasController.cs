@@ -139,7 +139,7 @@ namespace AplicacionReservas.Controllers
             reserva.Fecha = reserva.Fecha.Date;
 
             // Validaciones generales
-            if (!reserva.EsMantenimiento)
+            if (reserva.Tipo != TipoReserva.Mantenimiento)
             {
                 if (string.IsNullOrWhiteSpace(reserva.Materia) ||
                     string.IsNullOrWhiteSpace(reserva.NombreProyecto) ||
@@ -156,11 +156,11 @@ namespace AplicacionReservas.Controllers
 
             // Validar traslape con mantenimiento
             var hayMantenimiento = await _context.Reservas.AnyAsync(r =>
-                r.EsMantenimiento &&
+                r.Tipo == TipoReserva.Mantenimiento &&
                 r.Fecha == reserva.Fecha &&
                 r.LaboratorioId == reserva.LaboratorioId &&
-                r.HoraInicioMantenimiento < moduloActual.HoraFin &&
-                r.HoraFinMantenimiento > moduloActual.HoraInicio);
+                r.HoraInicioA < moduloActual.HoraFin &&
+                r.HoraFinA > moduloActual.HoraInicio);
 
             if (hayMantenimiento)
             {
@@ -269,11 +269,20 @@ namespace AplicacionReservas.Controllers
                 _ => "X"
             };
 
-            // Contar cuántas reservas existen ya para este laboratorio
-            int count = _context.Reservas.Count(r => r.LaboratorioId == laboratorioId) + 1;
+            // Traer todas las reservas del laboratorio que ya tienen código con ese prefijo
+            var codigos = _context.Reservas
+                .Where(r => r.LaboratorioId == laboratorioId && r.CodigoReserva.StartsWith(prefijo))
+                .Select(r => r.CodigoReserva)
+                .AsEnumerable(); // 👈 aquí lo paso a memoria
 
-            // Formatear con ceros a la izquierda: M001, I005, etc.
-            return $"{prefijo}{count:D3}";
+            // Buscar el máximo número ya usado
+            int maxNumero = codigos
+                .Select(c => int.TryParse(c.Substring(1), out int n) ? n : 0)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            // Generar el siguiente
+            return $"{prefijo}{(maxNumero + 1):D3}";
         }
 
         [HttpGet]
@@ -303,11 +312,14 @@ namespace AplicacionReservas.Controllers
             {
                 Fecha = modelo.Fecha,
                 LaboratorioId = modelo.LaboratorioId,
-                HoraInicioMantenimiento = modelo.HoraInicio,
-                HoraFinMantenimiento = modelo.HoraFin,
-                EsMantenimiento = modelo.EsMantenimiento,
+                HoraInicioA = modelo.HoraInicio,
+                HoraFinA = modelo.HoraFin,
+                Tipo = modelo.Tipo,
                 UsuarioId = userId
             };
+
+            reserva.FechaCreacion = DateTime.Now;
+            reserva.CodigoReserva = GenerarCodigoReserva(reserva.LaboratorioId);
 
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
@@ -572,28 +584,30 @@ namespace AplicacionReservas.Controllers
                 (!laboratorioId.HasValue || r.LaboratorioId == laboratorioId) &&
                 (r.Aprobado == EstadoAprobacion.Pendiente ||
                  r.Aprobado == EstadoAprobacion.Aprobado ||
-                 r.EsMantenimiento) // incluir mantenimiento
+                 r.Tipo == TipoReserva.Mantenimiento ||
+                 r.Tipo == TipoReserva.Especial)
             )
+            .AsEnumerable() // <<-- Trae los datos a memoria
             .Select(r => new
             {
-                title = r.EsMantenimiento
+                title = r.Tipo == TipoReserva.Mantenimiento
                     ? $"Mantenimiento - {r.Laboratorio.Nombre}"
                     : $"Reserva - {r.Laboratorio.Nombre}",
 
-                start = r.EsMantenimiento
-                    ? r.Fecha.Date.Add(r.HoraInicioMantenimiento.Value).ToString("s")
-                    : r.Fecha.Date.Add(r.ModuloHorario.HoraInicio).ToString("s"),
+                start = (r.Tipo == TipoReserva.Mantenimiento || r.Tipo == TipoReserva.Especial)
+                    ? r.Fecha.Date + (r.HoraInicioA ?? TimeSpan.Zero)
+                    : r.Fecha.Date + r.ModuloHorario.HoraInicio,
 
-                end = r.EsMantenimiento
-                    ? r.Fecha.Date.Add(r.HoraFinMantenimiento.Value).ToString("s")
-                    : r.Fecha.Date.Add(r.ModuloHorario.HoraFin).ToString("s"),
+                end = (r.Tipo == TipoReserva.Mantenimiento || r.Tipo == TipoReserva.Especial)
+                    ? r.Fecha.Date + (r.HoraFinA ?? (r.HoraInicioA ?? TimeSpan.Zero).Add(TimeSpan.FromHours(1)))
+                    : r.Fecha.Date + r.ModuloHorario.HoraFin,
 
                 laboratorio = r.Laboratorio.Nombre,
                 email = r.Usuario.Email,
-                color = r.EsMantenimiento ? "#dc3545" : // Rojo mantenimiento
-                    r.Aprobado == EstadoAprobacion.Aprobado ? "#198754" : // Verde aprobadas
-                    r.Aprobado == EstadoAprobacion.Pendiente ? "#e4ad06" : "#6c757d", // Amarillo pendientes, gris por defecto
-                textColor = r.EsMantenimiento ? "#ffffff" : "#000000" // blanco para mantenimiento, negro para reservas
+                color = r.Tipo == TipoReserva.Mantenimiento ? "#dc3545" :
+                        r.Aprobado == EstadoAprobacion.Aprobado || r.Tipo == TipoReserva.Especial ? "#198754" :
+                        r.Aprobado == EstadoAprobacion.Pendiente ? "#e4ad06" : "#6c757d",
+                textColor = r.Tipo == TipoReserva.Mantenimiento ? "#ffffff" : "#000000"
             })
             .ToList();
 

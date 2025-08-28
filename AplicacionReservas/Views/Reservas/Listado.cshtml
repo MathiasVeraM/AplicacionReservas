@@ -6,7 +6,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool esAdmin = User.IsInRole("Admin");
     string userId = User.FindFirst("UserId")?.Value;
-    var ahora = DateTime.Now;
 }
 
 <h1>Listado de Reservas</h1>
@@ -22,7 +21,7 @@
             <th>Equipos</th>
             <th>Reactivos</th>
             <th>Estado</th>
-            @if (esAdmin || Model.Any(r => !r.EsMantenimiento))
+            @if (esAdmin || Model.Any(r => !(r.Tipo == TipoReserva.Mantenimiento)))
             {
                 <th>Detalle</th>
             }
@@ -86,9 +85,13 @@
                     </ul>
                 </td>
                 <td>
-                    @if (r.EsMantenimiento)
+                    @if (r.Tipo == TipoReserva.Mantenimiento)
                     {
                         <span class="badge bg-info text-dark">Mantenimiento</span>
+                    }
+                    else if (r.Tipo == TipoReserva.Especial)
+                    {
+                        <span class="badge bg-info text-dark">Especial</span>
                     }
                     else
                     {
@@ -109,14 +112,14 @@
                         }
                     }
                 </td>
-                @if (!r.EsMantenimiento)
+                @if (r.Tipo != TipoReserva.Mantenimiento && r.Tipo != TipoReserva.Especial)
                 {
                     @if (esAdmin)
                     {
                         <td>
                             <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-info">Ver Detalles</a>
                         </td>
-                        @if (true)
+                        @if (r.EstaFinalizada)
                         {
                             <td>
                                 <!-- Botón de Observaciones finales -->

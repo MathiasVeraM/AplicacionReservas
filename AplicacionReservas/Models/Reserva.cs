@@ -23,9 +23,9 @@ namespace AplicacionReservas.Models
         public Docente? Docente { get; set; }
         public string? EvidenciaCorreoRuta { get; set; }
         public EstadoAprobacion Aprobado { get; set; } = EstadoAprobacion.Pendiente;
-        public bool EsMantenimiento { get; set; } = false;
-        public TimeSpan? HoraInicioMantenimiento { get; set; }
-        public TimeSpan? HoraFinMantenimiento { get; set; }
+        public TipoReserva Tipo { get; set; } = TipoReserva.Estandar;
+        public TimeSpan? HoraInicioA { get; set; }
+        public TimeSpan? HoraFinA { get; set; }
         [Required]
         [Range(1, 3, ErrorMessage = "Duración debe ser entre 1 y 3 horas")]
         public int DuracionHoras { get; set; }
@@ -36,6 +36,30 @@ namespace AplicacionReservas.Models
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         [MaxLength(10)]
         public string? CodigoReserva { get; set; }
+        // Comprobacion de que es una reserva finalizada
+        [NotMapped]
+        public bool EstaFinalizada
+        {
+            get
+            {
+                DateTime fin;
+
+                if ((Tipo == TipoReserva.Mantenimiento || Tipo == TipoReserva.Especial) && HoraFinA.HasValue)
+                {
+                    fin = Fecha.Date + HoraFinA.Value;
+                }
+                else if (ModuloHorario != null)
+                {
+                    fin = Fecha.Date + ModuloHorario.HoraFin;
+                }
+                else
+                {
+                    return false;
+                }
+
+                return DateTime.Now >= fin;
+            }
+        }
 
         public ICollection<Equipo> Equipos { get; set; } = new List<Equipo>();
         public ICollection<ReservaReactivo> ReservaReactivos { get; set; } = new List<ReservaReactivo>();
@@ -51,4 +75,12 @@ namespace AplicacionReservas.Models
         Aprobado,
         Pendiente
     }
+
+    public enum TipoReserva
+    {
+        Estandar,
+        Especial,
+        Mantenimiento
+    }
+    
 }

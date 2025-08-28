@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AplicacionReservas.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace AplicacionReservas.ViewModels
 {
@@ -16,6 +17,7 @@ namespace AplicacionReservas.ViewModels
         [Required]
         public TimeSpan? HoraFin { get; set; }
 
-        public bool EsMantenimiento { get; set; }
+        public TipoReserva Tipo { get; set; } = TipoReserva.Especial;
+
     }
 }

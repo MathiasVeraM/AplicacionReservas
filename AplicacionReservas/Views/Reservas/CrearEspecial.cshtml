@@ -9,11 +9,16 @@
     <h2 class="mb-4 text-center fw-bold text-black">Crear Reserva Especial</h2>
 
     <form asp-action="CrearEspecial" method="post" class="needs-validation" novalidate>
-        <div class="form-check form-switch mb-4">
-            <input asp-for="EsMantenimiento" class="form-check-input" type="checkbox" id="esMantenimientoSwitch" />
-            <label class="form-check-label fw-semibold" for="esMantenimientoSwitch">
-                <i class="bi bi-tools me-1"></i> ¿Es mantenimiento?
-            </label>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Tipo de reserva</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" asp-for="Tipo" value="Mantenimiento" checked />
+                <label class="form-check-label">Mantenimiento</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" asp-for="Tipo" value="Especial" />
+                <label class="form-check-label">Especial</label>
+            </div>
         </div>
 
         <div class="row g-3 mb-4">
