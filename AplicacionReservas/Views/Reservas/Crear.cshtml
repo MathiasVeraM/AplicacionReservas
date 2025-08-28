@@ -222,12 +222,23 @@
     <div class="form-step" style="display:none;">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Reactivos</span>
-                <div class="input-group w-50 mb-0">
-                    <input type="text" id="busquedaReactivo" class="form-control" placeholder="Buscar reactivo..." />
-                    <button class="btn btn-outline-secondary" type="button" onclick="buscarReactivo()">
-                        <i class="bi bi-search"></i>
-                    </button>
+                <span>
+                    Reactivos
+                </span>
+                <div class="d-flex align-items-center">
+                    <!-- Botones de busqueda de reactivos -->
+                    <div class="input-group me-3">
+                        <input type="text" id="busquedaReactivo" class="form-control" placeholder="Buscar reactivo..." />
+                        <button class="btn btn-outline-dark" type="button" onclick="buscarReactivo()">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+
+                    <!-- Botones de paginación de reactivos -->
+                    <div class="d-flex align-items-center">
+                        <button type="button" class="btn btn-outline-dark me-2" id="prevPaginaReactivos"><i class="bi bi-arrow-left"></i></button>
+                        <button type="button" class="btn btn-outline-dark" id="nextPaginaReactivos"><i class="bi bi-arrow-right"></i></button>
+                    </div>
                 </div>
             </div>
 
@@ -287,6 +298,9 @@
         // Variables para contar miembros e insumos
         let contadorMiembros = 1;
         let contadorInsumos = 1;
+        // Variables para mostrar cierta cantidad de reactivos
+        let paginaReactivosActual = 1;
+        const itemsPorPagina = 10;
 
         // Funciones de agregar y eliminar miembros e insumos (igual que las tienes)
         function agregarMiembro() {
@@ -457,6 +471,7 @@
         document.getElementById("nextBtn5").addEventListener("click", () => {
             currentStep = 5;
             showStep(currentStep);
+            mostrarPaginaReactivos(); // ahora sí se aplicará la paginación
         });
 
         document.getElementById("prevBtn6").addEventListener("click", () => {
