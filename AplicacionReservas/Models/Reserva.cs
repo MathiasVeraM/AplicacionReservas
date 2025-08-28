@@ -31,6 +31,7 @@ namespace AplicacionReservas.Models
         public int DuracionHoras { get; set; }
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
+        public string? ObservacionesFinales { get; set; }
 
 
         public ICollection<Equipo> Equipos { get; set; } = new List<Equipo>();
