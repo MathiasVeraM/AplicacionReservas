@@ -300,7 +300,24 @@
         </div>
         <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary" id="prevBtn7">Anterior</button>
-            <button type="submit" class="btn btn-dark text-white">Reservar</button>
+            <button type="button" class="btn btn-dark text-white" data-bs-toggle="modal" data-bs-target="#confirmModal">Reservar</button>
+            <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirmar Reserva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body">
+                    ¿Estás seguro de que deseas enviar esta reserva?
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="confirmarReservaBtn" class="btn btn-dark">Sí, reservar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
     </div>
 
@@ -568,6 +585,11 @@
         document.getElementById("prevBtn7").addEventListener("click", () => {
             currentStep = 5; // Paso 6
             showStep(currentStep);
+        });
+
+        // Para que se realice la reserva.
+        document.getElementById("confirmarReservaBtn").addEventListener("click", () => {
+            document.getElementById("formReserva").submit();
         });
 
 
