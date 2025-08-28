@@ -9,17 +9,27 @@
     <h2 class="mb-4 text-center fw-bold text-black">Crear Reserva Especial</h2>
 
     <form asp-action="CrearEspecial" method="post" class="needs-validation" novalidate>
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Tipo de reserva</label>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" asp-for="Tipo" value="Mantenimiento" checked />
-                <label class="form-check-label">Mantenimiento</label>
+        <div class="row mb-3">
+            <!-- Columna Tipo de reserva -->
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Tipo de reserva</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Tipo" value="Mantenimiento" checked />
+                    <label class="form-check-label">Mantenimiento</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Tipo" value="Especial" />
+                    <label class="form-check-label">Especial</label>
+                </div>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" asp-for="Tipo" value="Especial" />
-                <label class="form-check-label">Especial</label>
+
+            <!-- Input de grupo de estudiantes oculto al inicio -->
+            <div id="observaciones-container" class="col-md-8" style="display:none;">
+                <label class="form-label fw-semibold">Grupo de estudiantes</label>
+                <input asp-for="GrupoEstudiantes" type="text" class="form-control" />
             </div>
         </div>
+        
 
         <div class="row g-3 mb-4">
             <div class="col-md-4">
@@ -77,6 +87,23 @@
                 }, false);
             });
         })();
+
+        document.addEventListener("DOMContentLoaded", function () {
+          const radios = document.querySelectorAll("input[name='Tipo']");
+          const textareaContainer = document.getElementById("observaciones-container");
+
+          function toggleTextarea() {
+               const selected = document.querySelector("input[name='Tipo']:checked").value;
+               textareaContainer.style.display = (selected === "Especial") ? "block" : "none";
+          }
+
+          // Cuando cambie el tipo
+          radios.forEach(r => r.addEventListener("change", toggleTextarea));
+
+          // Llamar al cargar la página (por si viene con valor preseleccionado)
+          toggleTextarea();
+        });
+
     </script>
 }
 

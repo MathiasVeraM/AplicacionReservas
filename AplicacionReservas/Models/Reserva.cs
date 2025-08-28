@@ -36,6 +36,7 @@ namespace AplicacionReservas.Models
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         [MaxLength(10)]
         public string? CodigoReserva { get; set; }
+        public string? GrupoEstudiantes { get; set; }
         // Comprobacion de que es una reserva finalizada
         [NotMapped]
         public bool EstaFinalizada

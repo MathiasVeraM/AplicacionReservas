@@ -18,6 +18,7 @@ namespace AplicacionReservas.ViewModels
         public TimeSpan? HoraFin { get; set; }
 
         public TipoReserva Tipo { get; set; } = TipoReserva.Especial;
+        public string? GrupoEstudiantes { get; set; }
 
     }
 }

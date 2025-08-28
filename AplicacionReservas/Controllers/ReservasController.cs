@@ -315,6 +315,7 @@ namespace AplicacionReservas.Controllers
                 HoraInicioA = modelo.HoraInicio,
                 HoraFinA = modelo.HoraFin,
                 Tipo = modelo.Tipo,
+                GrupoEstudiantes = modelo.GrupoEstudiantes,
                 UsuarioId = userId
             };
 
