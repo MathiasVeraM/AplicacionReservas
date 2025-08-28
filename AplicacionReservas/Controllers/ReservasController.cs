@@ -75,7 +75,7 @@ namespace AplicacionReservas.Controllers
 
             // Determinar capacidad según laboratorio
             int capacidadPorModulo = 2; // valor por defecto
-            if (reserva.Laboratorio.Nombre == "-309 Biotecnologia Industrial")
+            if (reserva.LaboratorioId == 10)
             {
                 capacidadPorModulo = 3;
             }
@@ -214,6 +214,8 @@ namespace AplicacionReservas.Controllers
                 }
             }
 
+            reserva.FechaCreacion = DateTime.Now;
+            reserva.CodigoReserva = GenerarCodigoReserva(reserva.LaboratorioId);
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
@@ -252,6 +254,25 @@ namespace AplicacionReservas.Controllers
             }
 
             return RedirectToAction("Listado");
+        }
+
+        private string GenerarCodigoReserva(int laboratorioId)
+        {
+            // Definir prefijo según laboratorio
+            string prefijo = laboratorioId switch
+            {
+                9 => "M", // Molecular
+                10 => "I", // Industrial
+                11 => "A", // Aplicada
+                12 => "V", // Vegetal
+                _ => "X"
+            };
+
+            // Contar cuántas reservas existen ya para este laboratorio
+            int count = _context.Reservas.Count(r => r.LaboratorioId == laboratorioId) + 1;
+
+            // Formatear con ceros a la izquierda: M001, I005, etc.
+            return $"{prefijo}{count:D3}";
         }
 
         [HttpGet]
