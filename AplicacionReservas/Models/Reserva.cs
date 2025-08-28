@@ -32,7 +32,10 @@ namespace AplicacionReservas.Models
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
         public string? ObservacionesFinales { get; set; }
-
+        [DataType(DataType.DateTime)]
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        [MaxLength(10)]
+        public string? CodigoReserva { get; set; }
 
         public ICollection<Equipo> Equipos { get; set; } = new List<Equipo>();
         public ICollection<ReservaReactivo> ReservaReactivos { get; set; } = new List<ReservaReactivo>();
