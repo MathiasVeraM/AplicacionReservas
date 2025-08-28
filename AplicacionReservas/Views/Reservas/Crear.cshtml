@@ -284,7 +284,23 @@
         </div>
         <div class="d-flex justify-content-between">
             <button type="button" class="btn btn-secondary" id="prevBtn6">Anterior</button>
-            <button type="submit" class="btn btn-dark text-white " >Reservar</button>
+            <button type="button" class="btn btn-dark" id="nextBtn6">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Paso 7: Resumen -->
+    <div class="form-step" style="display:none;">
+        <div class="card mb-4">
+            <div class="card-header">Resumen de la Reserva</div>
+            <div class="card-body">
+                <ul class="list-group" id="resumenReserva">
+                    <!-- Aquí se llenará dinámicamente con JS -->
+                </ul>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary" id="prevBtn7">Anterior</button>
+            <button type="submit" class="btn btn-dark text-white">Reservar</button>
         </div>
     </div>
 
@@ -400,6 +416,70 @@
             if (unidadSelect) unidadSelect.style.display = mostrar ? 'inline-block' : 'none';
         }
 
+        // Resumen antes de reservar:
+        function llenarResumen() {
+            const resumen = document.getElementById("resumenReserva");
+            resumen.innerHTML = ""; // limpiar contenido
+
+            // Paso 1: Información general
+            const fecha = document.querySelector("input[name='Fecha']").value;
+            const laboratorio = document.querySelector("select[name='LaboratorioId'] option:checked")?.textContent || "";
+            const duracion = document.querySelector("#duracionReserva").value;
+            const modulo = document.querySelector("#moduloHorario option:checked")?.textContent || "";
+            const docente = document.querySelector("select[name='DocenteId'] option:checked")?.textContent || "";
+            const materia = document.querySelector("input[name='Materia']").value;
+            const proyecto = document.querySelector("input[name='NombreProyecto']").value;
+            const actividad = document.querySelector("input[name='Actividad']").value;
+
+            resumen.innerHTML += `<li class="list-group-item"><strong>Fecha:</strong> ${fecha}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Laboratorio:</strong> ${laboratorio}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Duración:</strong> ${duracion} hora(s)</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Módulo horario:</strong> ${modulo}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Docente:</strong> ${docente}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Materia:</strong> ${materia}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Nombre del proyecto:</strong> ${proyecto}</li>`;
+            resumen.innerHTML += `<li class="list-group-item"><strong>Actividad:</strong> ${actividad}</li>`;
+
+            // Paso 2: Miembros
+            const miembros = Array.from(document.querySelectorAll("#equipo-container input")).map(i => i.value).filter(v => v);
+            if (miembros.length > 0) {
+                resumen.innerHTML += `<li class="list-group-item"><strong>Miembros del equipo:</strong> ${miembros.join(", ")}</li>`;
+            }
+
+            // Paso 3: Insumos
+            const insumos = Array.from(document.querySelectorAll("#insumo-container .insumo-item")).map(item => {
+                const nombre = item.querySelector("input[name^='insumos']").value;
+                const cantidad = item.querySelector("input[type='number']").value;
+                return `${nombre} (${cantidad})`;
+            }).filter(v => v);
+            if (insumos.length > 0) {
+                resumen.innerHTML += `<li class="list-group-item"><strong>Insumos:</strong> ${insumos.join(", ")}</li>`;
+            }
+
+            // Paso 4: Equipos
+            const equipos = Array.from(document.querySelectorAll("input[name='equipoIds']:checked")).map(i => i.nextElementSibling.textContent.trim());
+            if (equipos.length > 0) {
+                resumen.innerHTML += `<li class="list-group-item"><strong>Equipos:</strong> ${equipos.join(", ")}</li>`;
+            }
+
+            // Paso 5: Reactivos
+            const reactivos = Array.from(document.querySelectorAll("input[name='reactivosSeleccionados']:checked")).map(i => {
+                const label = i.nextElementSibling.textContent.trim();
+                const cantidad = i.closest(".reactivo-item").querySelector("input[type='number']").value;
+                const unidad = i.closest(".reactivo-item").querySelector("select").value;
+                return `${label} - ${cantidad} ${unidad}`;
+            });
+            if (reactivos.length > 0) {
+                resumen.innerHTML += `<li class="list-group-item"><strong>Reactivos:</strong> ${reactivos.join(", ")}</li>`;
+            }
+
+            // Paso 6: Consideraciones especiales
+            const consideraciones = document.querySelector("textarea[name='ConsideracionesEspeciales']").value;
+            if (consideraciones) {
+                resumen.innerHTML += `<li class="list-group-item"><strong>Consideraciones especiales:</strong> ${consideraciones}</li>`;
+            }
+        }
+
         // Mostrar los horarios correspondientes
         document.getElementById("duracionReserva").addEventListener("change", function () {
             const duracionSeleccionada = parseInt(this.value);
@@ -476,6 +556,17 @@
 
         document.getElementById("prevBtn6").addEventListener("click", () => {
             currentStep = 4;
+            showStep(currentStep);
+        });
+
+        document.getElementById("nextBtn6").addEventListener("click", () => {
+            currentStep = 6; // Paso 7 (0-indexed)
+            showStep(currentStep);
+            llenarResumen();
+        });
+
+        document.getElementById("prevBtn7").addEventListener("click", () => {
+            currentStep = 5; // Paso 6
             showStep(currentStep);
         });
 

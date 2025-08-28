@@ -227,11 +227,10 @@ namespace AplicacionReservas.Controllers
 
             // Envio de correos a administradores
 
-            string subject = "Nueva reserva creada";
+            string subject = $"Nueva reserva creada - Reserva {reserva.CodigoReserva}";
             string body = $@"
             Hola, <br/><br/>
             Se ha creado una nueva reserva pendiente de aprobación:<br/>
-            <strong>Codigo:</strong> {reservaConDatos.CodigoReserva}<br/>
             <strong>Fecha:</strong> {reservaConDatos.Fecha:dd/MM/yyyy}<br/>
             <strong>Laboratorio:</strong> {reservaConDatos.Laboratorio.Nombre}<br/>
             <strong>Creado por:</strong> {reservaConDatos.Usuario.Email}<br/><br/>
