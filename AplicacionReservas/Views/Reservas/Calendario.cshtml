@@ -55,14 +55,22 @@
             },
 
             eventDidMount: function (info) {
+                const grupoTexto = info.event.extendedProps.grupo
+                    ? `<strong>Grupo:</strong> ${info.event.extendedProps.grupo}<br/>`
+                    : "";
+
                 const tooltip = new bootstrap.Tooltip(info.el, {
-                    title: `Laboratorio: ${info.event.extendedProps.laboratorio}
-                            Usuario: ${info.event.extendedProps.email}
-                            Inicio: ${new Date(info.event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            Fin: ${new Date(info.event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                    title: `
+                        <strong>Código:</strong> ${info.event.extendedProps.codigo}<br/>
+                        <strong>Usuario:</strong> ${info.event.extendedProps.email}<br/>
+                        <strong>Laboratorio:</strong> ${info.event.extendedProps.laboratorio}<br/>
+                        ${grupoTexto}
+                        <strong>Inicio:</strong> ${new Date(info.event.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}<br/>
+                        <strong>Fin:</strong> ${new Date(info.event.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    `,
                     placement: 'top',
                     trigger: 'hover',
-                    html: false
+                    html: true
                 });
             }
         });

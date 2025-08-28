@@ -593,7 +593,9 @@ namespace AplicacionReservas.Controllers
             {
                 title = r.Tipo == TipoReserva.Mantenimiento
                     ? $"Mantenimiento - {r.Laboratorio.Nombre}"
-                    : $"Reserva - {r.Laboratorio.Nombre}",
+                    : r.Tipo == TipoReserva.Especial
+                        ? $"Especial - {r.Laboratorio.Nombre}"
+                        : $"Reserva - {r.Laboratorio.Nombre}",
 
                 start = (r.Tipo == TipoReserva.Mantenimiento || r.Tipo == TipoReserva.Especial)
                     ? r.Fecha.Date + (r.HoraInicioA ?? TimeSpan.Zero)
@@ -605,6 +607,8 @@ namespace AplicacionReservas.Controllers
 
                 laboratorio = r.Laboratorio.Nombre,
                 email = r.Usuario.Email,
+                codigo = r.CodigoReserva,
+                grupo = r.GrupoEstudiantes ?? "",
                 color = r.Tipo == TipoReserva.Mantenimiento ? "#dc3545" :
                         r.Aprobado == EstadoAprobacion.Aprobado || r.Tipo == TipoReserva.Especial ? "#198754" :
                         r.Aprobado == EstadoAprobacion.Pendiente ? "#e4ad06" : "#6c757d",
