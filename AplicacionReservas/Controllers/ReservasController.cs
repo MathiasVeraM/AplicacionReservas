@@ -264,8 +264,8 @@ namespace AplicacionReservas.Controllers
             {
                 9 => "M", // Molecular
                 10 => "I", // Industrial
-                11 => "A", // Aplicada
-                12 => "V", // Vegetal
+                11 => "V", // Vegetal
+                12 => "A", // Aplicada
                 _ => "X"
             };
 
