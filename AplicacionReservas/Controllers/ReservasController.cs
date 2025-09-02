@@ -356,7 +356,7 @@ namespace AplicacionReservas.Controllers
                 .Include(r => r.Equipos)
                 .Include(r => r.ReservaReactivos).ThenInclude(rr => rr.Reactivo);
 
-            if (!User.IsInRole("Admin"))
+            if (!User.IsInRole("Admin") && !User.IsInRole("Supervisor"))
             {
                 // Usuario común: solo sus reservas
                 query = query.Where(r => r.UsuarioId == usuarioId);

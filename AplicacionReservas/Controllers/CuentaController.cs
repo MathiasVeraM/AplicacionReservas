@@ -125,14 +125,14 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Supervisor, Admin")]
         public IActionResult RegistrarAdmin()
         {
             return View();
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Supervisor, Admin")]
         public IActionResult RegistrarAdmin(string email, string password)
         {
             // Verifica que se escriba email y contraseña
@@ -162,6 +162,46 @@ namespace AplicacionReservas.Controllers
             _context.SaveChanges();
 
             return RedirectToAction("Calendario","Reservas");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Supervisor, Admin")]
+        public IActionResult RegistrarSupervisor()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Supervisor, Admin")]
+        public IActionResult RegistrarSupervisor(string email, string password)
+        {
+            // Verifica que se escriba email y contraseña
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                ModelState.AddModelError("", "Correo y contraseña son requeridos.");
+                return View();
+            }
+
+            // Verifica que aun no exista ese usuario
+            if (_context.Usuario.Any(u => u.Email == email))
+            {
+                ModelState.AddModelError("", "Ya existe un usuario con ese correo.");
+                return View();
+            }
+
+            var nuevoSupervisor = new Usuario
+            {
+                Email = email,
+                Rol = "Supervisor",
+                IDBanner = "SUPERVISOR"
+            };
+
+            nuevoSupervisor.Password = _passwordHasher.HashPassword(nuevoSupervisor, password);
+
+            _context.Usuario.Add(nuevoSupervisor);
+            _context.SaveChanges();
+
+            return RedirectToAction("Calendario", "Reservas");
         }
 
         [HttpGet]

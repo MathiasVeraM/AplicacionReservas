@@ -34,7 +34,7 @@
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="CrearEspecial"><i class="bi bi-feather"></i> Nueva Reserva</a>
                                 </li>
                             }
-                            else
+                            else if (User.IsInRole("Usuario"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="Crear"><i class="bi bi-feather"></i> Nueva Reserva</a>
@@ -47,9 +47,10 @@
                         </ul>
                         @if (User.Identity.IsAuthenticated)
                         {
-                            @if (User.IsInRole("Admin"))
+                            @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
                             {
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="RegistrarAdmin"><i class="bi bi-person-fill-add"></i> Nuevo Administrador</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="RegistrarSupervisor"><i class="bi bi-person-fill-add"></i> Nuevo Supervisor</a>
                             }
                             <form asp-area="" asp-controller="Cuenta" asp-action="Logout" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-link fs-4 text-dark" style="text-decoration: none;">

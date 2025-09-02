@@ -1,0 +1,69 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Registro de Supervisor";
+    ViewBag.OcultarNavbar = true;
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header text-white" style="background-color: #000000;">
+                <h4 class="mb-0 text-center">Registrar Supervisor</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="RegistrarSupervisor" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="correo" name="email" required />
+                        <div class="invalid-feedback">
+                            Por favor ingresa un correo válido.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password" required />
+                        <div class="invalid-feedback">
+                            Por favor ingresa una contraseña.
+                        </div>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    <div class="text-center mt-3">
+                        <span class="text-dark">¿Ya tienes cuenta? -</span><a asp-controller="Cuenta" asp-action="LoginUsuario"> Inicia Sesion </a>
+                    </div>
+                    <br>
+                    <button type="submit" class="btn text-white w-100" style="background-color: #000000;">Registrar Supervisor</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
+}
