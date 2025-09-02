@@ -1,0 +1,12 @@
+﻿@model AplicacionReservas.Models.Unidad
+
+<h1>Detalle de la Unidad</h1>
+
+<div class="mb-3">
+    <label class="form-label"><strong>Nombre:</strong></label>
+    <p>@Model.Nombre</p>
+</div>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
+

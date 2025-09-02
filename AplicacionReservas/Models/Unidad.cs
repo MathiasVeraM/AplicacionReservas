@@ -10,6 +10,6 @@ namespace AplicacionReservas.Models
         [Required]
         public string? Nombre { get; set; }
 
-        public ICollection<Reactivo> Reactivos { get; set; }
+        public ICollection<Reactivo> Reactivos { get; set; } = new List<Reactivo>();
     }
 }
