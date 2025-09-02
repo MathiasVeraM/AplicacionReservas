@@ -1,0 +1,53 @@
+﻿@model IEnumerable<AplicacionReservas.Models.Laboratorio>
+
+<h1>Laboratorios</h1>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+<a asp-action="Create" class="btn btn-dark mb-3">Nuevo Laboratorio</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lab in Model)
+        {
+            <tr>
+                <td>@lab.Nombre</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@lab.Id" class="btn btn-dark btn-sm">Detalles</a>
+                    <a asp-action="Edit" asp-route-id="@lab.Id" class="btn btn-dark btn-sm">Editar</a>
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal@lab.Id">Eliminar</button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="deleteModal@lab.Id" tabindex="-1" aria-labelledby="deleteModalLabel@lab.Id" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel@lab.Id">Confirmar Eliminación</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    ¿Seguro que desea eliminar el laboratorio <strong>@lab.Nombre</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <form asp-action="DeleteConfirmed" method="post">
+                                        <input type="hidden" name="id" value="@lab.Id" />
+                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

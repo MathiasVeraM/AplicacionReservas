@@ -1,0 +1,22 @@
+﻿@model AplicacionReservas.Models.Laboratorio
+
+<h1>Detalles del Laboratorio</h1>
+
+<p><strong>Nombre:</strong> @Model.Nombre</p>
+
+<h4>Reservas asociadas:</h4>
+@if (Model.Reservas != null && Model.Reservas.Any())
+{
+    <ul>
+        @foreach (var r in Model.Reservas)
+        {
+            <li>@r.CodigoReserva - @r.Fecha.ToString("dd/MM/yyyy")</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No hay reservas asociadas.</p>
+}
+
+<a asp-action="Index" class="btn btn-secondary">Volver</a>
