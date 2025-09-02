@@ -1,0 +1,14 @@
+﻿@model AplicacionReservas.Models.Equipo
+
+<h1>Detalle del Equipo</h1>
+
+<div>
+    <p><strong>Nombre:</strong> @Model.Nombre</p>
+    <p><strong>Laboratorio:</strong> @Model.NombreLaboratorio</p>
+    <p><strong>Capacidad de Grupos:</strong> @Model.CapacidadGrupos</p>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Editar</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+</p>

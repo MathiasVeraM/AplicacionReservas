@@ -1,0 +1,59 @@
+﻿@model IEnumerable<AplicacionReservas.Models.Equipo>
+
+<h1>Equipos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-dark"><i class="bi bi-plus-circle"></i> Nuevo Equipo</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Laboratorio</th>
+            <th>Capacidad Grupos</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nombre</td>
+                <td>@item.NombreLaboratorio</td>
+                <td>@item.CapacidadGrupos</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-dark btn-sm">Ver</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-dark btn-sm">Editar</a>
+                    <!-- Botón Eliminar -->
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalEliminar-@item.Id">
+                        Eliminar
+                    </button>
+                    <!-- Modal de Confirmación -->
+                    <div class="modal fade" id="modalEliminar-@item.Id" tabindex="-1" aria-labelledby="modalEliminarLabel-@item.Id" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form asp-action="Delete" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="modalEliminarLabel-@item.Id">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Seguro que desea eliminar el equipo <strong>@item.Nombre</strong>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Fin Modal -->
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
