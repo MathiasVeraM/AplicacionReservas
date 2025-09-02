@@ -1,0 +1,16 @@
+﻿@model AplicacionReservas.Models.Reactivo
+
+<h1>Detalle del Reactivo</h1>
+
+<div class="mb-3">
+    <label class="form-label"><strong>Nombre:</strong></label>
+    <p>@Model.Nombre</p>
+</div>
+
+<div class="mb-3">
+    <label class="form-label"><strong>Código:</strong></label>
+    <p>@Model.Codigo</p>
+</div>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>

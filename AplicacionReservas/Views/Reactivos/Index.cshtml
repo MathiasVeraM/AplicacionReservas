@@ -1,0 +1,56 @@
+﻿@model IEnumerable<AplicacionReservas.Models.Reactivo>
+
+<h1>Reactivos</h1>
+
+<a asp-action="Create" class="btn btn-dark mb-3">Nuevo Reactivo</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Código</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.Nombre</td>
+                <td>@r.Codigo</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-dark btn-sm">Editar</a>
+                    <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-dark btn-sm">Detalles</a>
+
+                    <!-- Botón eliminar -->
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal-@r.Id">
+                        Eliminar
+                    </button>
+
+                    <!-- Modal confirmación -->
+                    <div class="modal fade" id="deleteModal-@r.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@r.Id" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form asp-action="Delete" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title" id="deleteModalLabel-@r.Id">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Está seguro que desea eliminar el reactivo "<strong>@r.Nombre</strong>"?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
