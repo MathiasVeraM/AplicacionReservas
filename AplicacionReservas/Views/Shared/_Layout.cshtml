@@ -33,6 +33,7 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Reservas" asp-action="CrearEspecial"><i class="bi bi-feather"></i> Nueva Reserva</a>
                                 </li>
+                                
                             }
                             else if (User.IsInRole("Usuario"))
                             {
@@ -49,8 +50,28 @@
                         {
                             @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
                             {
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="RegistrarAdmin"><i class="bi bi-person-fill-add"></i> Nuevo Administrador</a>
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Cuenta" asp-action="RegistrarSupervisor"><i class="bi bi-person-fill-add"></i> Nuevo Supervisor</a>
+                                <ul class="navbar-nav ms-auto">
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" id="adminGestionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-grid-fill"></i> Menú
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminGestionDropdown">
+                                            <li><a class="dropdown-item" asp-controller="Equipos" asp-action="Index"><i class="bi bi-hdd-stack"></i> Equipos</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Reactivos" asp-action="Index"><i class="bi bi-droplet"></i> Reactivos</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Unidades" asp-action="Index"><i class="bi bi-rulers"></i> Unidades</a></li>
+                                            
+                                            <li><hr class="dropdown-divider"></li>
+
+                                            <li><a class="dropdown-item" asp-controller="Laboratorios" asp-action="Index"><i class="bi bi-flask"></i> Laboratorios</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Docentes" asp-action="Index"><i class="bi bi-person-badge"></i> Docentes</a></li>
+                                            
+                                            <li><hr class="dropdown-divider"></li>
+
+                                            <li><a class="dropdown-item" asp-area="" asp-controller="Cuenta" asp-action="RegistrarAdmin"><i class="bi bi-person-fill-add"></i> Nuevo Administrador</a></li>
+                                            <li><a class="dropdown-item" asp-area="" asp-controller="Cuenta" asp-action="RegistrarSupervisor"><i class="bi bi-person-fill-add"></i> Nuevo Supervisor</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
                             }
                             <form asp-area="" asp-controller="Cuenta" asp-action="Logout" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-link fs-4 text-dark" style="text-decoration: none;">
