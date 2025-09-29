@@ -251,13 +251,6 @@
 
                         <input type="number" name="cantidades[@reactivo.Id]" placeholder="Cantidad" class="form-control me-2 w-25" min="1" style="display:none;" />
 
-                        <select name="unidades[@reactivo.Id]" class="form-select w-25" style="display:none;">
-                            <option value="">Selecciona unidad</option>
-                            @foreach (var unidad in ViewBag.Unidades)
-                            {
-                                <option value="@unidad.Nombre">@unidad.Nombre</option>
-                            }
-                        </select>
                     </div>
                 }
             </div>
@@ -420,11 +413,9 @@
         function toggleCantidad(checkbox) {
             const container = checkbox.closest('.d-flex');
             const cantidadInput = container.querySelector('input[type="number"]');
-            const unidadSelect = container.querySelector('select');
             const mostrar = checkbox.checked;
 
             if (cantidadInput) cantidadInput.style.display = mostrar ? 'inline-block' : 'none';
-            if (unidadSelect) unidadSelect.style.display = mostrar ? 'inline-block' : 'none';
         }
 
         // Resumen antes de reservar:
@@ -477,8 +468,7 @@
             const reactivos = Array.from(document.querySelectorAll("input[name='reactivosSeleccionados']:checked")).map(i => {
                 const label = i.nextElementSibling.textContent.trim();
                 const cantidad = i.closest(".reactivo-item").querySelector("input[type='number']").value;
-                const unidad = i.closest(".reactivo-item").querySelector("select").value;
-                return `${label} - ${cantidad} ${unidad}`;
+                return `${label} - ${cantidad}`;
             });
             if (reactivos.length > 0) {
                 resumen.innerHTML += `<li class="list-group-item"><strong>Reactivos:</strong> ${reactivos.join(", ")}</li>`;

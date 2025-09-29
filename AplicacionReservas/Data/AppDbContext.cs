@@ -18,7 +18,6 @@ namespace AplicacionReservas.Data
         public DbSet<Docente> Docentes { get; set; }
         public DbSet<Laboratorio> Laboratorios { get; set; }
         public DbSet<ModuloHorario> ModulosHorario { get; set; }
-        public DbSet<Unidad> Unidades { get; set; }
         public DbSet<MiembroEquipo> MiembrosEquipo { get; set; }
         public DbSet<Insumo> Insumos {  get; set; }
 

@@ -17,8 +17,5 @@ namespace AplicacionReservas.Models
 
         [Required]
         public int Cantidad { get; set; }
-
-        [Required]
-        public string Unidad { get; set; }
     }
 }

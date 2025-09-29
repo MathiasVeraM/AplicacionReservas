@@ -36,7 +36,6 @@ namespace AplicacionReservas.Controllers
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
-            ViewBag.Unidades = _context.Unidades.ToList();
             return View();
         }
 
@@ -201,15 +200,12 @@ namespace AplicacionReservas.Controllers
             reserva.ReservaReactivos = new List<ReservaReactivo>();
             foreach (var reactivoId in reactivosSeleccionados)
             {
-                if (cantidades.TryGetValue(reactivoId, out int cantidad) &&
-                    unidades.TryGetValue(reactivoId, out string unidad) &&
-                    !string.IsNullOrWhiteSpace(unidad) && cantidad > 0)
+                if (cantidades.TryGetValue(reactivoId, out int cantidad) && cantidad > 0)
                 {
                     reserva.ReservaReactivos.Add(new ReservaReactivo
                     {
                         ReactivoId = reactivoId,
-                        Cantidad = cantidad,
-                        Unidad = unidad
+                        Cantidad = cantidad
                     });
                 }
             }
@@ -272,7 +268,7 @@ namespace AplicacionReservas.Controllers
             var codigos = _context.Reservas
                 .Where(r => r.LaboratorioId == laboratorioId && r.CodigoReserva.StartsWith(prefijo))
                 .Select(r => r.CodigoReserva)
-                .AsEnumerable(); // 👈 aquí lo paso a memoria
+                .AsEnumerable();
 
             // Buscar el máximo número ya usado
             int maxNumero = codigos
@@ -335,7 +331,6 @@ namespace AplicacionReservas.Controllers
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
-            ViewBag.Unidades = _context.Unidades.ToList();
         }
 
         // Ver las reservas realizadas
@@ -649,7 +644,6 @@ namespace AplicacionReservas.Controllers
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
-            ViewBag.Unidades = _context.Unidades.ToList();
             return View(reserva);
         }
 
@@ -762,14 +756,12 @@ namespace AplicacionReservas.Controllers
             reserva.ReservaReactivos = new List<ReservaReactivo>();
             foreach (var reactivoId in reactivosSeleccionados)
             {
-                if (cantidades.TryGetValue(reactivoId, out int cantidad) &&
-                    unidades.TryGetValue(reactivoId, out string unidad))
+                if (cantidades.TryGetValue(reactivoId, out int cantidad))
                 {
                     reserva.ReservaReactivos.Add(new ReservaReactivo
                     {
                         ReactivoId = reactivoId,
-                        Cantidad = cantidad,
-                        Unidad = unidad
+                        Cantidad = cantidad
                     });
                 }
             }
@@ -872,7 +864,7 @@ namespace AplicacionReservas.Controllers
             if (reserva.ReservaReactivos != null && reserva.ReservaReactivos.Any())
             {
                 foreach (var rr in reserva.ReservaReactivos)
-                    html.Append($"<tr><td>{rr.Reactivo?.Nombre}</td><td>{rr.Cantidad}</td><td>{rr.Unidad}</td></tr>");
+                    html.Append($"<tr><td>{rr.Reactivo?.Nombre}</td><td>{rr.Cantidad}</td></tr>");
             }
             else
             {
