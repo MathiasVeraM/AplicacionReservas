@@ -41,7 +41,9 @@
             <div class="card-body row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Fecha</label>
-                    <input type="date" name="Fecha" class="form-control" min="@minDate" max="@maxDate" value="@(Model?.Fecha.ToString("yyyy-MM-dd"))" required />
+                    <input asp-for="Fecha" type="date" class="form-control"
+                           min="@minDate" max="@maxDate" required />
+                    <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Laboratorio</label>

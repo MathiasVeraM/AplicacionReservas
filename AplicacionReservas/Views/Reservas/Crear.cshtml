@@ -38,7 +38,7 @@
             <div class="card-body row g-3">
                 <!-- aquí va todo lo que ya tienes de información general -->
                 <div class="col-md-4">
-                    <label class="form-label">Fecha</label>
+                    <label asp-for="Fecha" class="control-label"></label>
                     <input asp-for="Fecha" type="date" class="form-control"
                            min="@minDate" max="@maxDate" required />
                     <span asp-validation-for="Fecha" class="text-danger"></span> 

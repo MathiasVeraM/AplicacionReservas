@@ -48,9 +48,9 @@ namespace AplicacionReservas.Controllers
             List<Insumo> insumos,
             List<int> equipoIds,
             List<int> reactivosSeleccionados,
-            Dictionary<int, int> cantidades,
-            Dictionary<int, string> unidades)
+            Dictionary<int, int> cantidades)
         {
+            Console.WriteLine($"Fecha recibida: {reserva.Fecha}");
             // Obtener módulo horario actual
             var moduloActual = await _context.ModulosHorario
                 .Where(m => m.Id == reserva.ModuloHorarioId)
@@ -657,8 +657,7 @@ namespace AplicacionReservas.Controllers
             List<Insumo> insumos,
             List<int> equipoIds,
             List<int> reactivosSeleccionados,
-            Dictionary<int, int> cantidades,
-            Dictionary<int, string> unidades)
+            Dictionary<int, int> cantidades)
         {
             var reserva = _context.Reservas
                 .Include(r => r.MiembrosEquipo)
@@ -860,7 +859,7 @@ namespace AplicacionReservas.Controllers
             html.Append("</table>");
 
             // Reactivos
-            html.Append("<h2>Reactivos</h2><table><tr><th>Nombre</th><th>Cantidad</th><th>Unidad</th></tr>");
+            html.Append("<h2>Reactivos</h2><table><tr><th>Nombre</th><th>Cantidad</th></tr>");
             if (reserva.ReservaReactivos != null && reserva.ReservaReactivos.Any())
             {
                 foreach (var rr in reserva.ReservaReactivos)
