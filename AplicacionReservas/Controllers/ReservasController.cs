@@ -50,7 +50,6 @@ namespace AplicacionReservas.Controllers
             List<int> reactivosSeleccionados,
             Dictionary<int, int> cantidades)
         {
-            Console.WriteLine($"Fecha recibida: {reserva.Fecha}");
             // Obtener módulo horario actual
             var moduloActual = await _context.ModulosHorario
                 .Where(m => m.Id == reserva.ModuloHorarioId)
@@ -97,7 +96,7 @@ namespace AplicacionReservas.Controllers
 
             if (reservasTraslapadas >= capacidadPorModulo)
             {
-                ModelState.AddModelError("", $"Ya se alcanzó el límite de {capacidadPorModulo} reserva(s) para este laboratorio y módulo.");
+                ModelState.AddModelError("CapacidadModulo", $"Ya se alcanzó el límite de {capacidadPorModulo} reserva(s) para este laboratorio y módulo.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
@@ -128,7 +127,7 @@ namespace AplicacionReservas.Controllers
             var userIdClaim = User.FindFirst("UserId")?.Value;
             if (!int.TryParse(userIdClaim, out int userId))
             {
-                ModelState.AddModelError("", "No se pudo identificar al usuario.");
+                ModelState.AddModelError("NoUsuario", "No se pudo identificar al usuario.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
@@ -147,7 +146,7 @@ namespace AplicacionReservas.Controllers
                     reserva.DocenteId == null ||
                     string.IsNullOrWhiteSpace(reserva.EvidenciaCorreoRuta))
                 {
-                    ModelState.AddModelError("", "Todos los campos del formulario son obligatorios.");
+                    ModelState.AddModelError("LlenarCampos", "Todos los campos del formulario son obligatorios.");
                     CargarListasParaViewBag();
                     return View(reserva);
                 }
@@ -163,7 +162,7 @@ namespace AplicacionReservas.Controllers
 
             if (hayMantenimiento)
             {
-                ModelState.AddModelError("", "Ya hay un mantenimiento programado para ese horario.");
+                ModelState.AddModelError("HayMantenimiento", "Ya hay un mantenimiento programado para ese horario.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
@@ -190,7 +189,7 @@ namespace AplicacionReservas.Controllers
 
                 if (reservasEquipo >= equipo.CapacidadGrupos)
                 {
-                    ModelState.AddModelError("",
+                    ModelState.AddModelError("CapacidadGrupos",
                         $"El equipo '{equipo.Nombre}' ya alcanzó su límite de {equipo.CapacidadGrupos} grupo(s) en este módulo.");
                     CargarListasParaViewBag();
                     return View(reserva);

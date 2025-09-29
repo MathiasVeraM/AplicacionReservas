@@ -14,12 +14,32 @@
 
 @if (!ViewData.ModelState.IsValid)
 {
-    <div class="alert alert-danger">
-        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-        {
-            <p>@error.ErrorMessage</p>
-        }
-    </div>
+    var customKeys = new[]
+    {
+        "ModuloHorarioId",
+        "DuracionHoras",
+        "CapacidadModulo",
+        "EvidenciaCorreoRuta",
+        "NoUsuario",
+        "LlenarCampos",
+        "HayMantenimiento",
+        "CapacidadGrupos"
+    };
+
+    var customErrors = ViewData.ModelState
+        .Where(m => customKeys.Contains(m.Key))
+        .SelectMany(m => m.Value.Errors)
+        .ToList();
+
+    if (customErrors.Any())
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in customErrors)
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
 }
 
 <form asp-action="Crear" method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="formReserva">
