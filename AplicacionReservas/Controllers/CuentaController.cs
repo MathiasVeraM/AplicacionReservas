@@ -205,6 +205,46 @@ namespace AplicacionReservas.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Supervisor, Admin")]
+        public IActionResult RegistrarPasante()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Supervisor, Admin")]
+        public IActionResult RegistrarPasante(string email, string password)
+        {
+            // Verifica que se escriba email y contraseña
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                ModelState.AddModelError("", "Correo y contraseña son requeridos.");
+                return View();
+            }
+
+            // Verifica que aun no exista ese usuario
+            if (_context.Usuario.Any(u => u.Email == email))
+            {
+                ModelState.AddModelError("", "Ya existe un usuario con ese correo.");
+                return View();
+            }
+
+            var nuevoPasante = new Usuario
+            {
+                Email = email,
+                Rol = "Pasante",
+                IDBanner = "PASANTE"
+            };
+
+            nuevoPasante.Password = _passwordHasher.HashPassword(nuevoPasante, password);
+
+            _context.Usuario.Add(nuevoPasante);
+            _context.SaveChanges();
+
+            return RedirectToAction("Calendario", "Reservas");
+        }
+
+        [HttpGet]
         [AllowAnonymous]
         public IActionResult AccesoDenegado()
         {

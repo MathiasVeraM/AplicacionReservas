@@ -6,6 +6,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     bool esAdmin = User.IsInRole("Admin");
     bool esSupervisor = User.IsInRole("Supervisor");
+    bool esPasante = User.IsInRole("Pasante");
     string userId = User.FindFirst("UserId")?.Value;
 }
 
@@ -22,7 +23,7 @@
             <th>Equipos</th>
             <th>Reactivos</th>
             <th>Estado</th>
-            @if (esSupervisor || esAdmin || Model.Any(r => !(r.Tipo == TipoReserva.Mantenimiento)))
+            @if (esPasante || esSupervisor || esAdmin || Model.Any(r => !(r.Tipo == TipoReserva.Mantenimiento)))
             {
                 <th>Detalle</th>
             }
@@ -253,7 +254,7 @@
                             </td>
                         }
                     }
-                    else if (esSupervisor)
+                    else if (esSupervisor || esPasante)
                     {
                         <td>
                             <a asp-action="Detalle" asp-route-id="@r.Id" class="btn btn-info">Ver Detalles</a>

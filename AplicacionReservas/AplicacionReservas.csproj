@@ -26,6 +26,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Views\Cuenta\RegistrarPasante.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="LibreriaPDF\libwkhtmltox.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
