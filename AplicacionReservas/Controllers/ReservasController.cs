@@ -10,6 +10,7 @@ using System.Text;
 using AplicacionReservas.Interfaces;
 using AplicacionReservas.ViewModels;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AplicacionReservas.Controllers
 {
@@ -333,7 +334,7 @@ namespace AplicacionReservas.Controllers
         }
 
         // Ver las reservas realizadas
-        public IActionResult Listado()
+        public IActionResult Listado(int? laboratorioId, DateTime? fecha)
         {
             var userIdClaim = User.FindFirst("UserId")?.Value;
 
@@ -356,7 +357,22 @@ namespace AplicacionReservas.Controllers
                 query = query.Where(r => r.UsuarioId == usuarioId);
             }
 
+            if (laboratorioId.HasValue)
+            {
+                query = query.Where(r => r.LaboratorioId == laboratorioId.Value);
+            }
+
+            if (fecha.HasValue)
+            {
+                query = query.Where(r => r.Fecha.Date == fecha.Value.Date);
+            }
+
             var reservas = query.OrderByDescending(r => r.Id).ToList();
+            
+            ViewBag.LaboratorioId = laboratorioId;
+            ViewBag.Fecha = fecha?.ToString("yyyy-MM-dd");
+            ViewBag.Laboratorios = new SelectList(_context.Laboratorios, "Id", "Nombre", laboratorioId);
+
 
             return View(reservas);
         }

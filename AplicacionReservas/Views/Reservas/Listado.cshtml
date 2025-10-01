@@ -10,7 +10,29 @@
     string userId = User.FindFirst("UserId")?.Value;
 }
 
-<h1>Listado de Reservas</h1>
+<div class="d-flex flex-wrap align-items-end justify-content-between mb-3">
+    <h1 class="mb-0">Listado de Reservas</h1>
+
+    <form method="get" asp-action="Listado" class="d-flex gap-2 align-items-end flex-wrap">
+        <div class="d-flex flex-column me-2">
+            <label for="laboratorioId" class="form-label small mb-1">Laboratorio</label>
+            <select id="laboratorioId" name="laboratorioId" asp-items="ViewBag.Laboratorios" class="form-select form-select-sm">
+                <option value="">-- Todos --</option>
+            </select>
+        </div>
+
+        <div class="d-flex flex-column me-2">
+            <label for="fecha" class="form-label small mb-1">Fecha</label>
+            <input type="date" id="fecha" name="fecha" value="@ViewBag.Fecha" class="form-control form-control-sm" />
+        </div>
+
+        <div class="d-flex gap-2 mb-1">
+            <button type="submit" class="btn btn-dark btn-sm text-white">Filtrar</button>
+            <a asp-action="Listado" class="btn btn-secondary btn-sm">Limpiar</a>
+        </div>
+    </form>
+</div>
+
 
 <table class="table table-striped">
     <thead>
