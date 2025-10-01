@@ -33,7 +33,7 @@ namespace AplicacionReservas.Controllers
         public IActionResult Crear()
         {
             ViewBag.Laboratorios = _context.Laboratorios.ToList();
-            ViewBag.Modulos = _context.ModulosHorario.Select(m => new {m.Id, m.Nombre, m.DuracionHoras}).ToList();
+            ViewBag.Modulos = _context.ModulosHorario.ToList();
             ViewBag.Reactivos = _context.Reactivos.ToList();
             ViewBag.Equipos = _context.Equipos.ToList();
             ViewBag.Docentes = _context.Docentes.ToList();
@@ -49,55 +49,19 @@ namespace AplicacionReservas.Controllers
             List<Insumo> insumos,
             List<int> equipoIds,
             List<int> reactivosSeleccionados,
-            Dictionary<int, int> cantidades)
+            Dictionary<int, int> cantidades,
+            List<int> ModulosSeleccionados)
         {
-            // Obtener módulo horario actual
-            var moduloActual = await _context.ModulosHorario
-                .Where(m => m.Id == reserva.ModuloHorarioId)
-                .Select(m => new { m.HoraInicio, m.HoraFin, m.DuracionHoras })
-                .FirstOrDefaultAsync();
-
-            if (moduloActual == null)
+            if (ModulosSeleccionados == null || !ModulosSeleccionados.Any())
             {
-                ModelState.AddModelError("ModuloHorarioId", "El módulo horario seleccionado no existe.");
+                ModelState.AddModelError("ModulosSeleccionados", "Debe seleccionar al menos un módulo.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
 
-            // Validar si la duración elegida coincide con la del módulo
-            if (reserva.DuracionHoras != moduloActual.DuracionHoras)
+            if (ModulosSeleccionados.Count > 3)
             {
-                ModelState.AddModelError("DuracionHoras", "La duración seleccionada no coincide con la del módulo horario.");
-                CargarListasParaViewBag();
-                return View(reserva);
-            }
-
-            // Determinar capacidad según laboratorio
-            int capacidadPorModulo = 2; // valor por defecto
-            if (reserva.LaboratorioId == 10)
-            {
-                capacidadPorModulo = 3;
-            }
-            else
-            {
-                capacidadPorModulo = 2; // los demás laboratorios
-            }
-
-            // Validar el cupo de los laboratorios para hacer las reservas
-            var reservasTraslapadas = await _context.Reservas
-                .Include(r => r.ModuloHorario)
-                .Where(r =>
-                    r.Fecha == reserva.Fecha &&
-                    r.LaboratorioId == reserva.LaboratorioId &&
-                    r.ModuloHorario != null &&
-                    r.ModuloHorario.HoraInicio < moduloActual.HoraFin &&
-                    r.ModuloHorario.HoraFin > moduloActual.HoraInicio
-                )
-                .CountAsync();
-
-            if (reservasTraslapadas >= capacidadPorModulo)
-            {
-                ModelState.AddModelError("CapacidadModulo", $"Ya se alcanzó el límite de {capacidadPorModulo} reserva(s) para este laboratorio y módulo.");
+                ModelState.AddModelError("ModulosSeleccionados", "Solo puede seleccionar hasta 3 módulos.");
                 CargarListasParaViewBag();
                 return View(reserva);
             }
@@ -134,8 +98,9 @@ namespace AplicacionReservas.Controllers
             }
 
             reserva.UsuarioId = userId;
-            // Forzar que la fecha siempre se guarde sin hora
             reserva.Fecha = reserva.Fecha.Date;
+            reserva.FechaCreacion = DateTime.Now;
+            reserva.CodigoReserva = GenerarCodigoReserva(reserva.LaboratorioId);
 
             // Validaciones generales
             if (reserva.Tipo != TipoReserva.Mantenimiento)
@@ -143,7 +108,6 @@ namespace AplicacionReservas.Controllers
                 if (string.IsNullOrWhiteSpace(reserva.Materia) ||
                     string.IsNullOrWhiteSpace(reserva.NombreProyecto) ||
                     string.IsNullOrWhiteSpace(reserva.Actividad) ||
-                    reserva.ModuloHorarioId == null ||
                     reserva.DocenteId == null ||
                     string.IsNullOrWhiteSpace(reserva.EvidenciaCorreoRuta))
                 {
@@ -153,89 +117,126 @@ namespace AplicacionReservas.Controllers
                 }
             }
 
-            // Validar traslape con mantenimiento
-            var hayMantenimiento = await _context.Reservas.AnyAsync(r =>
-                r.Tipo == TipoReserva.Mantenimiento &&
-                r.Fecha == reserva.Fecha &&
-                r.LaboratorioId == reserva.LaboratorioId &&
-                r.HoraInicioA < moduloActual.HoraFin &&
-                r.HoraFinA > moduloActual.HoraInicio);
-
-            if (hayMantenimiento)
+            foreach (var moduloId in ModulosSeleccionados)
             {
-                ModelState.AddModelError("HayMantenimiento", "Ya hay un mantenimiento programado para ese horario.");
-                CargarListasParaViewBag();
-                return View(reserva);
-            }
+                var modulo = await _context.ModulosHorario
+                    .Where(m => m.Id == moduloId)
+                    .Select(m => new { m.HoraInicio, m.HoraFin, m.DuracionHoras, m.Nombre })
+                    .FirstOrDefaultAsync();
 
-            // Cargar relaciones
-            reserva.MiembrosEquipo = miembros;
-            reserva.Insumos = insumos;
+                if (modulo == null) continue;
 
-            reserva.Equipos = _context.Equipos
-                .Where(e => equipoIds.Contains(e.Id))
-                .ToList();
+                int capacidadPorModulo = reserva.LaboratorioId == 10 ? 3 : 2;
 
-            //  Validar capacidad de los equipos seleccionados
-            foreach (var equipo in reserva.Equipos)
-            {
-                // Reservas existentes en el mismo laboratorio, fecha y módulo con este equipo
-                var reservasEquipo = await _context.Reservas
-                    .Include(r => r.Equipos)
-                    .Where(r => r.Fecha == reserva.Fecha &&
-                                r.LaboratorioId == reserva.LaboratorioId &&
-                                r.ModuloHorarioId == reserva.ModuloHorarioId &&
-                                r.Equipos.Any(eq => eq.Id == equipo.Id))
+                var reservasTraslapadas = await _context.Reservas
+                    .Where(r =>
+                        r.Fecha == reserva.Fecha &&
+                        r.LaboratorioId == reserva.LaboratorioId &&
+                        r.ModuloHorarioId == moduloId)
                     .CountAsync();
 
-                if (reservasEquipo >= equipo.CapacidadGrupos)
+                if (reservasTraslapadas >= capacidadPorModulo)
                 {
-                    ModelState.AddModelError("CapacidadGrupos",
-                        $"El equipo '{equipo.Nombre}' ya alcanzó su límite de {equipo.CapacidadGrupos} grupo(s) en este módulo.");
+                    ModelState.AddModelError("", $"Ya se alcanzó el límite de {capacidadPorModulo} reserva(s) para el módulo {modulo.Nombre}.");
                     CargarListasParaViewBag();
                     return View(reserva);
                 }
-            }
 
-            reserva.ReservaReactivos = new List<ReservaReactivo>();
-            foreach (var reactivoId in reactivosSeleccionados)
-            {
-                if (cantidades.TryGetValue(reactivoId, out int cantidad) && cantidad > 0)
+                // Validar traslape con mantenimiento
+                var hayMantenimiento = await _context.Reservas.AnyAsync(r =>
+                    r.Tipo == TipoReserva.Mantenimiento &&
+                    r.Fecha == reserva.Fecha &&
+                    r.LaboratorioId == reserva.LaboratorioId &&
+                    r.HoraInicioA < modulo.HoraFin &&
+                    r.HoraFinA > modulo.HoraInicio);
+
+                if (hayMantenimiento)
                 {
-                    reserva.ReservaReactivos.Add(new ReservaReactivo
-                    {
-                        ReactivoId = reactivoId,
-                        Cantidad = cantidad
-                    });
+                    ModelState.AddModelError("HayMantenimiento", "Ya hay un mantenimiento programado para ese horario.");
+                    CargarListasParaViewBag();
+                    return View(reserva);
                 }
+
+                // Crear reserva para este módulo
+                var nuevaReserva = new Reserva
+                {
+                    Fecha = reserva.Fecha,
+                    LaboratorioId = reserva.LaboratorioId,
+                    Materia = reserva.Materia,
+                    NombreProyecto = reserva.NombreProyecto,
+                    Actividad = reserva.Actividad,
+                    ConsideracionesEspeciales = reserva.ConsideracionesEspeciales,
+                    ModuloHorarioId = moduloId,
+                    DuracionHoras = modulo.DuracionHoras,
+                    DocenteId = reserva.DocenteId,
+                    EvidenciaCorreoRuta = reserva.EvidenciaCorreoRuta,
+                    UsuarioId = reserva.UsuarioId,
+                    MiembrosEquipo = miembros,
+                    Equipos = _context.Equipos.Where(e => equipoIds.Contains(e.Id)).ToList(),
+                    Insumos = insumos,
+                    ReservaReactivos = new List<ReservaReactivo>(),
+                    CodigoReserva = reserva.CodigoReserva,
+                    FechaCreacion = reserva.FechaCreacion
+                };
+
+                // Reactivos
+                foreach (var reactivoId in reactivosSeleccionados)
+                {
+                    if (cantidades.TryGetValue(reactivoId, out int cantidad) && cantidad > 0)
+                    {
+                        nuevaReserva.ReservaReactivos.Add(new ReservaReactivo
+                        {
+                            ReactivoId = reactivoId,
+                            Cantidad = cantidad
+                        });
+                    }
+                }
+
+                // Validar capacidad de los equipos
+                foreach (var equipo in nuevaReserva.Equipos)
+                {
+                    var reservasEquipo = await _context.Reservas
+                        .Include(r => r.Equipos)
+                        .Where(r => r.Fecha == nuevaReserva.Fecha &&
+                                    r.LaboratorioId == nuevaReserva.LaboratorioId &&
+                                    r.ModuloHorarioId == moduloId &&
+                                    r.Equipos.Any(eq => eq.Id == equipo.Id))
+                        .CountAsync();
+
+                    if (reservasEquipo >= equipo.CapacidadGrupos)
+                    {
+                        ModelState.AddModelError("CapacidadGrupos",
+                            $"El equipo '{equipo.Nombre}' ya alcanzó su límite de {equipo.CapacidadGrupos} grupo(s) en este módulo.");
+                        CargarListasParaViewBag();
+                        return View(reserva);
+                    }
+                }
+
+                _context.Reservas.Add(nuevaReserva);
             }
 
-            reserva.FechaCreacion = DateTime.Now;
-            reserva.CodigoReserva = GenerarCodigoReserva(reserva.LaboratorioId);
-            _context.Reservas.Add(reserva);
+            // Guardar todo
             await _context.SaveChangesAsync();
 
-            // Obtener los datos desde la base de datos:
+            // Enviar correo a administradores
             var reservaConDatos = await _context.Reservas
                 .Include(r => r.Laboratorio)
                 .Include(r => r.Usuario)
-                .FirstOrDefaultAsync(r => r.Id == reserva.Id);
-
-            // Envio de correos a administradores
+                .FirstOrDefaultAsync(r => r.CodigoReserva == reserva.CodigoReserva);
 
             string subject = $"Nueva reserva creada - Reserva {reserva.CodigoReserva}";
             string body = $@"
-            Hola, <br/><br/>
-            Se ha creado una nueva reserva pendiente de aprobación:<br/>
-            <strong>Fecha:</strong> {reservaConDatos.Fecha:dd/MM/yyyy}<br/>
-            <strong>Laboratorio:</strong> {reservaConDatos.Laboratorio.Nombre}<br/>
-            <strong>Creado por:</strong> {reservaConDatos.Usuario.Email}<br/><br/>
-            Por favor revisa el panel de administración.";
+                Hola, <br/><br/>
+                Se han creado nuevas reservas pendientes de aprobación:<br/>
+                <strong>Fecha:</strong> {reservaConDatos.Fecha:dd/MM/yyyy}<br/>
+                <strong>Laboratorio:</strong> {reservaConDatos.Laboratorio.Nombre}<br/>
+                <strong>Creado por:</strong> {reservaConDatos.Usuario.Email}<br/><br/>
+                Por favor revisa el panel de administración.";
 
             var adminEmails = _context.Usuario
-                          .Where(u => u.Rol == "Admin")
-                          .Select(u => u.Email)
-                          .ToList();
+                .Where(u => u.Rol == "Admin")
+                .Select(u => u.Email)
+                .ToList();
 
             foreach (var email in adminEmails)
             {

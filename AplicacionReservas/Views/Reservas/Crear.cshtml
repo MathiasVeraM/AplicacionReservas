@@ -56,31 +56,36 @@
         <div class="card mb-4">
             <div class="card-header">Información general</div>
             <div class="card-body row g-3">
-                <!-- aquí va todo lo que ya tienes de información general -->
                 <div class="col-md-4">
-                    <label asp-for="Fecha" class="control-label"></label>
-                    <input asp-for="Fecha" type="date" class="form-control"
-                           min="@minDate" max="@maxDate" required />
-                    <span asp-validation-for="Fecha" class="text-danger"></span> 
+                    <label asp-for="Fecha" class="form-label">Fecha</label>
+                    <input asp-for="Fecha" type="date" class="form-control" min="@minDate" max="@maxDate" required />
+                    <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Laboratorio</label>
                     <select asp-for="LaboratorioId" asp-items="@(new SelectList(ViewBag.Laboratorios, "Id", "Nombre"))" class="form-select" required></select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Duración (en horas)</label>
-                    <select id="duracionReserva" name="DuracionHoras" class="form-select" required>
-                        <option value="">Seleccione duración</option>
-                        <option value="1">1 hora</option>
-                        <option value="2">2 horas</option>
-                        <option value="3">3 horas</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Módulo horario</label>
-                    <select id="moduloHorario" name="ModuloHorarioId" class="form-select" required>
-                        <option value="">Seleccione módulo horario</option>
-                    </select>
+                    <label class="form-label">Módulos disponibles (1 a 3)</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-dark dropdown-toggle w-100" type="button" id="dropdownModulos" data-bs-toggle="dropdown" aria-expanded="false">
+                            Selecciona módulos
+                        </button>
+                        <ul class="dropdown-menu p-3" aria-labelledby="dropdownModulos" style="max-height: 200px; overflow-y: auto;">
+                            @foreach (var modulo in ViewBag.Modulos as List<ModuloHorario>)
+                            {
+                                <li class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="ModulosSeleccionados"
+                                           value="@modulo.Id"
+                                           id="modulo_@modulo.Id" />
+                                    <label class="form-check-label" for="modulo_@modulo.Id">
+                                        @modulo.Nombre
+                                    </label>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Docente</label>
@@ -94,14 +99,15 @@
                     <label class="form-label">Nombre del proyecto</label>
                     <input asp-for="NombreProyecto" class="form-control" required />
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <label class="form-label">Actividad</label>
                     <input asp-for="Actividad" class="form-control" required />
                 </div>
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <label class="form-label">Evidencia del correo aprobado</label>
                     <input asp-for="EvidenciaCorreoRuta" type="file" accept="image/*" class="form-control" required />
                 </div>
+
             </div>
         </div>
         <div class="d-flex justify-content-end">
@@ -332,288 +338,219 @@
 
 @section Scripts {
     <script>
-        const todosLosModulos = @Html.Raw(Json.Serialize(ViewBag.Modulos));
-        const selectLab = document.getElementById("LaboratorioId");
-        const fieldsets = document.querySelectorAll("[data-laboratorio]");
-        // Variables para contar miembros e insumos
-        let contadorMiembros = 1;
-        let contadorInsumos = 1;
-        // Variables para mostrar cierta cantidad de reactivos
-        let paginaReactivosActual = 1;
-        const itemsPorPagina = 10;
+        document.addEventListener("DOMContentLoaded", function () {
+            const todosLosModulos = []; /*(@Html.Raw(Json.Serialize(ViewBag.Modulos ?? new List<object>())));*/
+            console.log(todosLosModulos);
+            const selectLab = document.getElementById("LaboratorioId");
+            const fieldsets = document.querySelectorAll("[data-laboratorio]");
+            // Variables para contar miembros e insumos
+            let contadorMiembros = 1;
+            let contadorInsumos = 1;
 
-        // Funciones de agregar y eliminar miembros e insumos (igual que las tienes)
-        function agregarMiembro() {
-            const cont = document.getElementById("equipo-container");
-            const miembrosActuales = cont.querySelectorAll('.miembro-item').length;
+            // Funciones de agregar y eliminar miembros e insumos (igual que las tienes)
+            window.agregarMiembro = function () {
+                const cont = document.getElementById("equipo-container");
+                const miembrosActuales = cont.querySelectorAll('.miembro-item').length;
 
-            if (miembrosActuales >= 4) {
-                alert("Solo puedes agregar hasta 4 miembros en el equipo.");
-                return;
-            }
-
-            const div = document.createElement("div");
-            div.className = "row g-3 mb-3 miembro-item";
-            div.innerHTML = `
-                <div class="col-md-4">
-                    <input name="miembros[${contadorMiembros}].Nombre" class="form-control" placeholder="Nombre del miembro" required />
-                </div>
-                <div class="col-md-1 d-flex align-items-center">
-                    <button type="button" class="btn btn-sm btn-danger" onclick="eliminarMiembro(this)">X</button>
-                </div>`;
-            cont.appendChild(div);
-            contadorMiembros++;
-        }
-
-        function eliminarMiembro(btn) {
-            const cont = document.getElementById("equipo-container");
-            const item = btn.closest('.miembro-item');
-            cont.removeChild(item);
-        }
-
-        function agregarInsumo() {
-            const cont = document.getElementById("insumo-container");
-            const div = document.createElement("div");
-            div.className = "row g-3 mb-3 insumo-item";
-            div.innerHTML = `
-                <div class="col-md-6">
-                    <input name="insumos[${contadorInsumos}].Nombre" class="form-control" placeholder="Nombre del insumo" required />
-                </div>
-                <div class="col-md-4">
-                    <input name="insumos[${contadorInsumos}].Cantidad" class="form-control" type="number" min="1" placeholder="Cantidad" required />
-                </div>
-                <div class="col-md-1 d-flex align-items-center">
-                    <button type="button" class="btn btn-sm btn-danger" onclick="eliminarInsumo(this)">X</button>
-                </div>`;
-            cont.appendChild(div);
-            contadorInsumos++;
-        }
-
-        function eliminarInsumo(btn) {
-            const item = btn.closest('.insumo-item');
-            item.remove();
-        }
-
-        // Funcion para mostrar los datos de los equipos por lab
-        function filtrarEquipos() {
-            const laboratorio = selectLab.options[selectLab.selectedIndex].text; // nombre del laboratorio
-            fieldsets.forEach(f => {
-                if (f.getAttribute("data-laboratorio") === laboratorio) {
-                    f.style.display = "block"; // mostrar
-                } else {
-                    f.style.display = "none"; // ocultar
+                if (miembrosActuales >= 4) {
+                    alert("Solo puedes agregar hasta 4 miembros en el equipo.");
+                    return;
                 }
-            });
-        }
 
-        // Funcion para buscar reactivos
-        function buscarReactivo() {
-            let input = document.getElementById("busquedaReactivo").value.toLowerCase();
-            let items = document.querySelectorAll(".reactivo-item");
+                const div = document.createElement("div");
+                div.className = "row g-3 mb-3 miembro-item";
+                div.innerHTML = `
+                                        <div class="col-md-4">
+                                            <input name="miembros[${contadorMiembros}].Nombre" class="form-control" placeholder="Nombre del miembro" required />
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-center">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarMiembro(this)">X</button>
+                                        </div>`;
+                cont.appendChild(div);
+                contadorMiembros++;
+            }
 
-            items.forEach(item => {
-                let nombre = item.getAttribute("data-nombre");
-                let codigo = item.getAttribute("data-codigo");
+            window.eliminarMiembro = function (btn) {
+                const cont = document.getElementById("equipo-container");
+                const item = btn.closest('.miembro-item');
+                cont.removeChild(item);
+            }
 
-                if (nombre.includes(input) || codigo.includes(input)) {
-                    item.classList.remove("d-none");
-                } else {
-                    item.classList.add("d-none");
+            window.agregarInsumo = function () {
+                const cont = document.getElementById("insumo-container");
+                const div = document.createElement("div");
+                div.className = "row g-3 mb-3 insumo-item";
+                div.innerHTML = `
+                                        <div class="col-md-6">
+                                            <input name="insumos[${contadorInsumos}].Nombre" class="form-control" placeholder="Nombre del insumo" required />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input name="insumos[${contadorInsumos}].Cantidad" class="form-control" type="number" min="1" placeholder="Cantidad" required />
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-center">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="eliminarInsumo(this)">X</button>
+                                        </div>`;
+                cont.appendChild(div);
+                contadorInsumos++;
+            }
+
+            window.eliminarInsumo = function(btn) {
+                const item = btn.closest('.insumo-item');
+                item.remove();
+            }
+
+            // Funcion para mostrar los datos de los equipos por lab
+            function filtrarEquipos() {
+                const laboratorio = selectLab.options[selectLab.selectedIndex].text;
+                fieldsets.forEach(f => {
+                    f.style.display = (f.getAttribute("data-laboratorio") === laboratorio) ? "block" : "none";
+                });
+            }
+
+
+            // Funcion para buscar reactivos
+            window.buscarReactivo = function () {
+                let input = document.getElementById("busquedaReactivo").value.toLowerCase();
+                let items = document.querySelectorAll(".reactivo-item");
+
+                items.forEach(item => {
+                    let nombre = item.getAttribute("data-nombre");
+                    let codigo = item.getAttribute("data-codigo");
+
+                    if (nombre.includes(input) || codigo.includes(input)) {
+                        item.classList.remove("d-none");
+                    } else {
+                        item.classList.add("d-none");
+                    }
+                });
+            }
+
+            selectLab?.addEventListener("change", filtrarEquipos);
+            filtrarEquipos();
+
+            // Mostrar/ocultar cantidad y unidad en reactivos
+            window.toggleCantidad = function (checkbox) {
+                const container = checkbox.closest('.d-flex');
+                const cantidadInput = container.querySelector('input[type="number"]');
+                const mostrar = checkbox.checked;
+                if (cantidadInput) cantidadInput.style.display = mostrar ? 'inline-block' : 'none';
+            }
+
+            // Resumen antes de reservar:
+            function llenarResumen() {
+                const resumen = document.getElementById("resumenReserva");
+                resumen.innerHTML = ""; // limpiar contenido
+
+                // Paso 1: Información general
+                const fecha = document.querySelector("input[name='Fecha']").value;
+                const laboratorio = document.querySelector("select[name='LaboratorioId'] option:checked")?.textContent || "";
+                const modulosSeleccionados = Array.from(document.querySelectorAll("input[name='ModulosSeleccionados']:checked"))
+                    .map(c => c.nextElementSibling.textContent.trim());
+                const docente = document.querySelector("select[name='DocenteId'] option:checked")?.textContent || "";
+                const materia = document.querySelector("input[name='Materia']").value;
+                const proyecto = document.querySelector("input[name='NombreProyecto']").value;
+                const actividad = document.querySelector("input[name='Actividad']").value;
+
+                resumen.innerHTML += `<li class="list-group-item"><strong>Fecha:</strong> ${fecha}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Laboratorio:</strong> ${laboratorio}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Módulos horarios:</strong> ${modulosSeleccionados.join(", ")}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Docente:</strong> ${docente}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Materia:</strong> ${materia}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Nombre del proyecto:</strong> ${proyecto}</li>`;
+                resumen.innerHTML += `<li class="list-group-item"><strong>Actividad:</strong> ${actividad}</li>`;
+
+                // Paso 2: Miembros
+                const miembros = Array.from(document.querySelectorAll("#equipo-container input")).map(i => i.value).filter(v => v);
+                if (miembros.length > 0) {
+                    resumen.innerHTML += `<li class="list-group-item"><strong>Miembros del equipo:</strong> ${miembros.join(", ")}</li>`;
                 }
-            });
-        }
 
-        // Ejecutar al cambiar el select
-        selectLab.addEventListener("change", filtrarEquipos);
+                // Paso 3: Insumos
+                const insumos = Array.from(document.querySelectorAll("#insumo-container .insumo-item")).map(item => {
+                    const nombre = item.querySelector("input[name^='insumos']").value;
+                    const cantidad = item.querySelector("input[type='number']").value;
+                    return `${nombre} (${cantidad})`;
+                }).filter(v => v);
+                if (insumos.length > 0) {
+                    resumen.innerHTML += `<li class="list-group-item"><strong>Insumos:</strong> ${insumos.join(", ")}</li>`;
+                }
 
-        // Opcional: ejecutar al cargar la página
-        window.addEventListener("DOMContentLoaded", filtrarEquipos);
+                // Paso 4: Equipos
+                const equipos = Array.from(document.querySelectorAll("input[name='equipoIds']:checked")).map(i => i.nextElementSibling.textContent.trim());
+                if (equipos.length > 0) {
+                    resumen.innerHTML += `<li class="list-group-item"><strong>Equipos:</strong> ${equipos.join(", ")}</li>`;
+                }
 
-        // Mostrar/ocultar cantidad y unidad en reactivos
-        function toggleCantidad(checkbox) {
-            const container = checkbox.closest('.d-flex');
-            const cantidadInput = container.querySelector('input[type="number"]');
-            const mostrar = checkbox.checked;
+                // Paso 5: Reactivos
+                const reactivos = Array.from(document.querySelectorAll("input[name='reactivosSeleccionados']:checked")).map(i => {
+                    const label = i.nextElementSibling.textContent.trim();
+                    const cantidad = i.closest(".reactivo-item").querySelector("input[type='number']").value;
+                    return `${label} - ${cantidad}`;
+                });
+                if (reactivos.length > 0) {
+                    resumen.innerHTML += `<li class="list-group-item"><strong>Reactivos:</strong> ${reactivos.join(", ")}</li>`;
+                }
 
-            if (cantidadInput) cantidadInput.style.display = mostrar ? 'inline-block' : 'none';
-        }
-
-        // Resumen antes de reservar:
-        function llenarResumen() {
-            const resumen = document.getElementById("resumenReserva");
-            resumen.innerHTML = ""; // limpiar contenido
-
-            // Paso 1: Información general
-            const fecha = document.querySelector("input[name='Fecha']").value;
-            const laboratorio = document.querySelector("select[name='LaboratorioId'] option:checked")?.textContent || "";
-            const duracion = document.querySelector("#duracionReserva").value;
-            const modulo = document.querySelector("#moduloHorario option:checked")?.textContent || "";
-            const docente = document.querySelector("select[name='DocenteId'] option:checked")?.textContent || "";
-            const materia = document.querySelector("input[name='Materia']").value;
-            const proyecto = document.querySelector("input[name='NombreProyecto']").value;
-            const actividad = document.querySelector("input[name='Actividad']").value;
-
-            resumen.innerHTML += `<li class="list-group-item"><strong>Fecha:</strong> ${fecha}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Laboratorio:</strong> ${laboratorio}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Duración:</strong> ${duracion} hora(s)</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Módulo horario:</strong> ${modulo}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Docente:</strong> ${docente}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Materia:</strong> ${materia}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Nombre del proyecto:</strong> ${proyecto}</li>`;
-            resumen.innerHTML += `<li class="list-group-item"><strong>Actividad:</strong> ${actividad}</li>`;
-
-            // Paso 2: Miembros
-            const miembros = Array.from(document.querySelectorAll("#equipo-container input")).map(i => i.value).filter(v => v);
-            if (miembros.length > 0) {
-                resumen.innerHTML += `<li class="list-group-item"><strong>Miembros del equipo:</strong> ${miembros.join(", ")}</li>`;
+                // Paso 6: Consideraciones especiales
+                const consideraciones = document.querySelector("textarea[name='ConsideracionesEspeciales']").value;
+                if (consideraciones) {
+                    resumen.innerHTML += `<li class="list-group-item"><strong>Consideraciones especiales:</strong> ${consideraciones}</li>`;
+                }
             }
 
-            // Paso 3: Insumos
-            const insumos = Array.from(document.querySelectorAll("#insumo-container .insumo-item")).map(item => {
-                const nombre = item.querySelector("input[name^='insumos']").value;
-                const cantidad = item.querySelector("input[type='number']").value;
-                return `${nombre} (${cantidad})`;
-            }).filter(v => v);
-            if (insumos.length > 0) {
-                resumen.innerHTML += `<li class="list-group-item"><strong>Insumos:</strong> ${insumos.join(", ")}</li>`;
-            }
+            // Mostrar módulos según duración
+            document.getElementById("duracionReserva")?.addEventListener("change", function () {
+                const duracionSeleccionada = parseInt(this.value);
+                const moduloSelect = document.getElementById("moduloHorario");
+                moduloSelect.innerHTML = '<option value="">Seleccione módulo horario</option>';
 
-            // Paso 4: Equipos
-            const equipos = Array.from(document.querySelectorAll("input[name='equipoIds']:checked")).map(i => i.nextElementSibling.textContent.trim());
-            if (equipos.length > 0) {
-                resumen.innerHTML += `<li class="list-group-item"><strong>Equipos:</strong> ${equipos.join(", ")}</li>`;
-            }
-
-            // Paso 5: Reactivos
-            const reactivos = Array.from(document.querySelectorAll("input[name='reactivosSeleccionados']:checked")).map(i => {
-                const label = i.nextElementSibling.textContent.trim();
-                const cantidad = i.closest(".reactivo-item").querySelector("input[type='number']").value;
-                return `${label} - ${cantidad}`;
-            });
-            if (reactivos.length > 0) {
-                resumen.innerHTML += `<li class="list-group-item"><strong>Reactivos:</strong> ${reactivos.join(", ")}</li>`;
-            }
-
-            // Paso 6: Consideraciones especiales
-            const consideraciones = document.querySelector("textarea[name='ConsideracionesEspeciales']").value;
-            if (consideraciones) {
-                resumen.innerHTML += `<li class="list-group-item"><strong>Consideraciones especiales:</strong> ${consideraciones}</li>`;
-            }
-        }
-
-        // Mostrar los horarios correspondientes
-        document.getElementById("duracionReserva").addEventListener("change", function () {
-            const duracionSeleccionada = parseInt(this.value);
-            const moduloSelect = document.getElementById("moduloHorario");
-
-            // Limpiar opciones actuales
-            moduloSelect.innerHTML = '<option value="">Seleccione módulo horario</option>';
-
-            // Filtrar y agregar los módulos compatibles
-            const modulosFiltrados = todosLosModulos.filter(m => m.duracionHoras === duracionSeleccionada);
-
-            modulosFiltrados.forEach(m => {
-                const option = document.createElement("option");
-                option.value = m.id;
-                option.textContent = m.nombre;
-                moduloSelect.appendChild(option);
-            });
-        });
-
-        // Control de pasos
-        const steps = document.querySelectorAll(".form-step");
-        let currentStep = 0;
-
-        function showStep(index) {
-            steps.forEach((step, i) => {
-                step.style.display = (i === index) ? "block" : "none";
-            });
-        }
-
-        showStep(currentStep);
-
-        document.getElementById("nextBtn1").addEventListener("click", () => {
-            currentStep = 1;
-            showStep(currentStep);
-        });
-
-        document.getElementById("prevBtn2").addEventListener("click", () => {
-            currentStep = 0;
-            showStep(currentStep);
-        });
-        document.getElementById("nextBtn2").addEventListener("click", () => {
-            currentStep = 2;
-            showStep(currentStep);
-        });
-
-        document.getElementById("prevBtn3").addEventListener("click", () => {
-            currentStep = 1;
-            showStep(currentStep);
-        });
-        document.getElementById("nextBtn3").addEventListener("click", () => {
-            currentStep = 3;
-            showStep(currentStep);
-        });
-
-        document.getElementById("prevBtn4").addEventListener("click", () => {
-            currentStep = 2;
-            showStep(currentStep);
-        });
-        document.getElementById("nextBtn4").addEventListener("click", () => {
-            currentStep = 4;
-            showStep(currentStep);
-        });
-
-        document.getElementById("prevBtn5").addEventListener("click", () => {
-            currentStep = 3;
-            showStep(currentStep);
-        });
-
-        document.getElementById("nextBtn5").addEventListener("click", () => {
-            currentStep = 5;
-            showStep(currentStep);
-            mostrarPaginaReactivos(); // ahora sí se aplicará la paginación
-        });
-
-        document.getElementById("prevBtn6").addEventListener("click", () => {
-            currentStep = 4;
-            showStep(currentStep);
-        });
-
-        document.getElementById("nextBtn6").addEventListener("click", () => {
-            currentStep = 6; // Paso 7 (0-indexed)
-            showStep(currentStep);
-            llenarResumen();
-        });
-
-        document.getElementById("prevBtn7").addEventListener("click", () => {
-            currentStep = 5; // Paso 6
-            showStep(currentStep);
-        });
-
-        // Para que se realice la reserva.
-        document.getElementById("confirmarReservaBtn").addEventListener("click", () => {
-            document.getElementById("formReserva").submit();
-        });
-
-
-        function showStep(index) {
-            steps.forEach((step, i) => {
-                step.style.display = (i === index) ? "block" : "none";
+                const modulosFiltrados = todosLosModulos.filter(m => m.duracionHoras === duracionSeleccionada);
+                modulosFiltrados.forEach(m => {
+                    const option = document.createElement("option");
+                    option.value = m.id;
+                    option.textContent = m.nombre;
+                    moduloSelect.appendChild(option);
+                });
             });
 
-            // Actualizar barra de progreso
-            const progreso = document.getElementById("barraProgreso");
-            const total = steps.length;
-            const pasoActual = index + 1;
-            const porcentaje = (pasoActual / total) * 100;
+            // Control de pasos
+            const steps = document.querySelectorAll(".form-step");
+            let currentStep = 0;
 
-            progreso.style.width = `${porcentaje}%`;
-            progreso.setAttribute("aria-valuenow", pasoActual);
-            progreso.textContent = `Paso ${pasoActual} de ${total}`;
+            function showStep(index) {
+                steps.forEach((step, i) => step.style.display = (i === index) ? "block" : "none");
+                const progreso = document.getElementById("barraProgreso");
+                const total = steps.length;
+                const pasoActual = index + 1;
+                const porcentaje = (pasoActual / total) * 100;
+                progreso.style.width = `${porcentaje}%`;
+                progreso.setAttribute("aria-valuenow", pasoActual);
+                progreso.textContent = `Paso ${pasoActual} de ${total}`;
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
 
-            // Scroll al inicio del formulario
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+            showStep(currentStep);
+
+            // Función helper para asignar listener solo si existe
+            function addListener(id, evento, callback) {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener(evento, callback);
+            }
+
+            addListener("nextBtn1", "click", () => { currentStep = 1; showStep(currentStep); });
+            addListener("prevBtn2", "click", () => { currentStep = 0; showStep(currentStep); });
+            addListener("nextBtn2", "click", () => { currentStep = 2; showStep(currentStep); });
+            addListener("prevBtn3", "click", () => { currentStep = 1; showStep(currentStep); });
+            addListener("nextBtn3", "click", () => { currentStep = 3; showStep(currentStep); });
+            addListener("prevBtn4", "click", () => { currentStep = 2; showStep(currentStep); });
+            addListener("nextBtn4", "click", () => { currentStep = 4; showStep(currentStep); });
+            addListener("prevBtn5", "click", () => { currentStep = 3; showStep(currentStep); });
+            addListener("nextBtn5", "click", () => { currentStep = 5; showStep(currentStep); });
+            addListener("prevBtn6", "click", () => { currentStep = 4; showStep(currentStep); });
+            addListener("nextBtn6", "click", () => { currentStep = 6; showStep(currentStep); llenarResumen(); });
+            addListener("prevBtn7", "click", () => { currentStep = 5; showStep(currentStep); });
+
+            addListener("confirmarReservaBtn", "click", () => { document.getElementById("formReserva")?.submit(); });
+        });
     </script>
 }
