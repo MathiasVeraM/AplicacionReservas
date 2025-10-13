@@ -171,7 +171,7 @@
         <div class="card mb-4">
             <div class="card-header">Equipos por laboratorio</div>
             <div class="card-body">
-                @* Agrupamos por laboratorio como antes *@
+                <!-- Agrupar por nombre de laboratorio -->
                 @{
                     var equiposPorLab = ((List<AplicacionReservas.Models.Equipo>)ViewBag.Equipos)
                     .GroupBy(e => e.NombreLaboratorio)
@@ -336,16 +336,54 @@
 
 </form>
 
+<!-- Alerta para los modulos, usando bootstrap -->
+<div id="bloqueAlerta" class="alert alert-warning alert-dismissible fade show d-none position-fixed top-0 start-50 translate-middle-x mt-3"
+     role="alert" style="z-index: 2000; min-width: 300px;">
+    <span id="mensajeAlerta"></span>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const todosLosModulos = []; /*(@Html.Raw(Json.Serialize(ViewBag.Modulos ?? new List<object>())));*/
-            console.log(todosLosModulos);
             const selectLab = document.getElementById("LaboratorioId");
             const fieldsets = document.querySelectorAll("[data-laboratorio]");
             // Variables para contar miembros e insumos
             let contadorMiembros = 1;
             let contadorInsumos = 1;
+            
+            // Funcion para la alerta usando bootstrap
+            window.mostrarAlerta = function (mensaje) {
+                const alerta = document.getElementById('bloqueAlerta');
+                const mensajeSpan = document.getElementById('mensajeAlerta');
+
+                mensajeSpan.textContent = mensaje;
+                alerta.classList.remove('d-none');
+
+                // Ocultar automáticamente después de 3 segundos
+                setTimeout(() => {
+                    alerta.classList.add('d-none');
+                }, 3000);
+            };
+
+            // Funcion para delimitar los modulos de horarios seleccionados
+            window.restringirSeleccionModulos = function () {
+                const horarioscheckboxes = document.querySelectorAll('input[name="ModulosSeleccionados"]');
+                const maxSeleccion = 3;
+
+                horarioscheckboxes.forEach(chk => {
+                    chk.addEventListener('change', function () {
+                        const seleccionados = document.querySelectorAll('input[name="ModulosSeleccionados"]:checked');
+
+                        if (seleccionados.length > maxSeleccion) {
+                            this.checked = false;
+                            mostrarAlerta(`Solo puedes seleccionar un máximo de ${maxSeleccion} módulos.`);
+                        }
+                    });
+                });
+            };
+
+            window.restringirSeleccionModulos();
 
             // Funciones de agregar y eliminar miembros e insumos (igual que las tienes)
             window.agregarMiembro = function () {
